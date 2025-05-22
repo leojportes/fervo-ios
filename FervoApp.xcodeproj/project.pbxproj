@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		21CE4955BBED88EDB2E71DBE /* Pods_FervoApp_FervoAppUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CB0DE5565C62870BFF23DE2 /* Pods_FervoApp_FervoAppUITests.framework */; };
+		833BC4BCAF762D6E221C9B25 /* Pods_FervoApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E7942AC235654A59DE30043 /* Pods_FervoApp.framework */; };
+		ED4DFD42D3443B8B9D8479CA /* Pods_FervoAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16BD56D6AE4D94CCFDD3B0D0 /* Pods_FervoAppTests.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		163451E92DDD107800F00BE9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,9 +30,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		140D7AA4F380D1FFE39082DA /* Pods-FervoApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FervoApp.release.xcconfig"; path = "Target Support Files/Pods-FervoApp/Pods-FervoApp.release.xcconfig"; sourceTree = "<group>"; };
 		163451DB2DDD107700F00BE9 /* FervoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FervoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		163451E82DDD107800F00BE9 /* FervoAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FervoAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		163451F22DDD107800F00BE9 /* FervoAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FervoAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		16BD56D6AE4D94CCFDD3B0D0 /* Pods_FervoAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FervoAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		4CB0DE5565C62870BFF23DE2 /* Pods_FervoApp_FervoAppUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FervoApp_FervoAppUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E7942AC235654A59DE30043 /* Pods_FervoApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FervoApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A8AF96594B37E01ABE3A050 /* Pods-FervoAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FervoAppTests.debug.xcconfig"; path = "Target Support Files/Pods-FervoAppTests/Pods-FervoAppTests.debug.xcconfig"; sourceTree = "<group>"; };
+		9157EF1236B4F9D7AEA570FC /* Pods-FervoApp-FervoAppUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FervoApp-FervoAppUITests.debug.xcconfig"; path = "Target Support Files/Pods-FervoApp-FervoAppUITests/Pods-FervoApp-FervoAppUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		C1AF1B52D5F74BA247A5A7E9 /* Pods-FervoApp-FervoAppUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FervoApp-FervoAppUITests.release.xcconfig"; path = "Target Support Files/Pods-FervoApp-FervoAppUITests/Pods-FervoApp-FervoAppUITests.release.xcconfig"; sourceTree = "<group>"; };
+		E1C470DF14D030F005032C5B /* Pods-FervoApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FervoApp.debug.xcconfig"; path = "Target Support Files/Pods-FervoApp/Pods-FervoApp.debug.xcconfig"; sourceTree = "<group>"; };
+		E91635297AB5E5598EB93DD8 /* Pods-FervoAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FervoAppTests.release.xcconfig"; path = "Target Support Files/Pods-FervoAppTests/Pods-FervoAppTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				833BC4BCAF762D6E221C9B25 /* Pods_FervoApp.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,6 +75,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED4DFD42D3443B8B9D8479CA /* Pods_FervoAppTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,6 +83,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				21CE4955BBED88EDB2E71DBE /* Pods_FervoApp_FervoAppUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +97,8 @@
 				163451EB2DDD107800F00BE9 /* FervoAppTests */,
 				163451F52DDD107800F00BE9 /* FervoAppUITests */,
 				163451DC2DDD107700F00BE9 /* Products */,
+				342610F65EF7985134E576B0 /* Pods */,
+				8E90DC07055A21503D4CAEE7 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,6 +112,29 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		342610F65EF7985134E576B0 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E1C470DF14D030F005032C5B /* Pods-FervoApp.debug.xcconfig */,
+				140D7AA4F380D1FFE39082DA /* Pods-FervoApp.release.xcconfig */,
+				9157EF1236B4F9D7AEA570FC /* Pods-FervoApp-FervoAppUITests.debug.xcconfig */,
+				C1AF1B52D5F74BA247A5A7E9 /* Pods-FervoApp-FervoAppUITests.release.xcconfig */,
+				6A8AF96594B37E01ABE3A050 /* Pods-FervoAppTests.debug.xcconfig */,
+				E91635297AB5E5598EB93DD8 /* Pods-FervoAppTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		8E90DC07055A21503D4CAEE7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4E7942AC235654A59DE30043 /* Pods_FervoApp.framework */,
+				4CB0DE5565C62870BFF23DE2 /* Pods_FervoApp_FervoAppUITests.framework */,
+				16BD56D6AE4D94CCFDD3B0D0 /* Pods_FervoAppTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -99,6 +142,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 163451FC2DDD107800F00BE9 /* Build configuration list for PBXNativeTarget "FervoApp" */;
 			buildPhases = (
+				61B714E7373A7AAA62FC79C0 /* [CP] Check Pods Manifest.lock */,
 				163451D72DDD107700F00BE9 /* Sources */,
 				163451D82DDD107700F00BE9 /* Frameworks */,
 				163451D92DDD107700F00BE9 /* Resources */,
@@ -111,8 +155,6 @@
 				163451DD2DDD107700F00BE9 /* FervoApp */,
 			);
 			name = FervoApp;
-			packageProductDependencies = (
-			);
 			productName = FervoApp;
 			productReference = 163451DB2DDD107700F00BE9 /* FervoApp.app */;
 			productType = "com.apple.product-type.application";
@@ -121,6 +163,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 163451FF2DDD107800F00BE9 /* Build configuration list for PBXNativeTarget "FervoAppTests" */;
 			buildPhases = (
+				0AB0C3DF2BCFB37490E90241 /* [CP] Check Pods Manifest.lock */,
 				163451E42DDD107800F00BE9 /* Sources */,
 				163451E52DDD107800F00BE9 /* Frameworks */,
 				163451E62DDD107800F00BE9 /* Resources */,
@@ -134,8 +177,6 @@
 				163451EB2DDD107800F00BE9 /* FervoAppTests */,
 			);
 			name = FervoAppTests;
-			packageProductDependencies = (
-			);
 			productName = FervoAppTests;
 			productReference = 163451E82DDD107800F00BE9 /* FervoAppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -144,6 +185,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 163452022DDD107800F00BE9 /* Build configuration list for PBXNativeTarget "FervoAppUITests" */;
 			buildPhases = (
+				69599F04E201E73F35C8823F /* [CP] Check Pods Manifest.lock */,
 				163451EE2DDD107800F00BE9 /* Sources */,
 				163451EF2DDD107800F00BE9 /* Frameworks */,
 				163451F02DDD107800F00BE9 /* Resources */,
@@ -157,8 +199,6 @@
 				163451F52DDD107800F00BE9 /* FervoAppUITests */,
 			);
 			name = FervoAppUITests;
-			packageProductDependencies = (
-			);
 			productName = FervoAppUITests;
 			productReference = 163451F22DDD107800F00BE9 /* FervoAppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -230,6 +270,75 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0AB0C3DF2BCFB37490E90241 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-FervoAppTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		61B714E7373A7AAA62FC79C0 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-FervoApp-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		69599F04E201E73F35C8823F /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-FervoApp-FervoAppUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		163451D72DDD107700F00BE9 /* Sources */ = {
@@ -392,6 +501,7 @@
 		};
 		163451FD2DDD107800F00BE9 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E1C470DF14D030F005032C5B /* Pods-FervoApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -420,6 +530,7 @@
 		};
 		163451FE2DDD107800F00BE9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 140D7AA4F380D1FFE39082DA /* Pods-FervoApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -448,6 +559,7 @@
 		};
 		163452002DDD107800F00BE9 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6A8AF96594B37E01ABE3A050 /* Pods-FervoAppTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -467,6 +579,7 @@
 		};
 		163452012DDD107800F00BE9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E91635297AB5E5598EB93DD8 /* Pods-FervoAppTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -486,6 +599,7 @@
 		};
 		163452032DDD107800F00BE9 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9157EF1236B4F9D7AEA570FC /* Pods-FervoApp-FervoAppUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -503,6 +617,7 @@
 		};
 		163452042DDD107800F00BE9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C1AF1B52D5F74BA247A5A7E9 /* Pods-FervoApp-FervoAppUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

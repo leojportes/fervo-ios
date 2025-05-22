@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct FervoAppApp: App {
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject var userSession = UserSession()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            //LoginView()
+            DashboardTabView()
         }
     }
 }
