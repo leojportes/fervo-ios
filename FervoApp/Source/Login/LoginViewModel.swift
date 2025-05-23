@@ -14,7 +14,7 @@ final class LoginViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var isAuthenticated: Bool = false
-    @Published var currentUser: UserRequestModel?
+    @Published var currentUser: UserModel?
 
 
     func login() {
@@ -68,7 +68,7 @@ final class LoginViewModel: ObservableObject {
 //        }
     }
 
-    private func fetchUserData(firebaseUID: String, completion: @escaping (Result<UserRequestModel, Error>) -> Void) {
+    private func fetchUserData(firebaseUID: String, completion: @escaping (Result<UserModel, Error>) -> Void) {
         guard let url = URL(string: "http://\(baseIPForTest):8080/users/firebase/\(firebaseUID)") else {
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "URL inválida."])))
             return
@@ -99,7 +99,7 @@ final class LoginViewModel: ObservableObject {
                 }
 
                 do {
-                    let user = try JSONDecoder().decode(UserRequestModel.self, from: data)
+                    let user = try JSONDecoder().decode(UserModel.self, from: data)
                     self?.currentUser = user
                     FVUserDefault.setObject(user, forKey: FVKeys.currentUser)
 

@@ -5,8 +5,7 @@
 //  Created by Leonardo Jose De Oliveira Portes on 20/05/25.
 //
 
-struct UserRequestModel: Codable {
-    let id: String
+struct UserModel: Codable, Equatable {
     let firebaseUid: String
     let email: String
     let username: String
@@ -17,14 +16,14 @@ struct UserRequestModel: Codable {
     let createdAt: String
 
     enum CodingKeys: String, CodingKey {
-        case id, email, username, name, image, age
+        case email, username, name, image, age
         case firebaseUid = "firebase_uid"
         case musicalTaste = "musical_taste"
         case createdAt = "created_at"
     }
 }
 
-struct ImageModel: Codable {
+struct ImageModel: Codable, Equatable {
     let imageId: String
     let photoURL: String?
 }

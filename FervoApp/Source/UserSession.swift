@@ -11,7 +11,7 @@ import SwiftUI
 class UserSession: ObservableObject {
     @Published var isAuthenticated: Bool? = nil
     @Published var userProfileImage: Image? = nil
-    @Published var currentUser: UserRequestModel? {
+    @Published var currentUser: UserModel? {
         didSet {
             saveToUserDefaults()
             loadUserProfileImage()
@@ -32,7 +32,7 @@ class UserSession: ObservableObject {
     }
 
     func loadFromUserDefaults() {
-        currentUser = FVUserDefault.getObject(forKey: FVKeys.currentUser, type: UserRequestModel.self)
+        currentUser = FVUserDefault.getObject(forKey: FVKeys.currentUser, type: UserModel.self)
     }
 
     func clear() {
