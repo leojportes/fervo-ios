@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct Comment: Codable, Equatable {
+struct PostComment: Codable, Equatable, Hashable {
     let user: UserModel
     let text: String
-    let createdAt: Date
+    let createdAt: String
 
     enum CodingKeys: String, CodingKey {
         case user

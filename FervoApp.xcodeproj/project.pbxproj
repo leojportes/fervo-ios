@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		168F97542DE3EC2900122D9C /* info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 168F97532DE3EC2100122D9C /* info.plist */; };
 		21CE4955BBED88EDB2E71DBE /* Pods_FervoApp_FervoAppUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CB0DE5565C62870BFF23DE2 /* Pods_FervoApp_FervoAppUITests.framework */; };
 		833BC4BCAF762D6E221C9B25 /* Pods_FervoApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E7942AC235654A59DE30043 /* Pods_FervoApp.framework */; };
 		ED4DFD42D3443B8B9D8479CA /* Pods_FervoAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 16BD56D6AE4D94CCFDD3B0D0 /* Pods_FervoAppTests.framework */; };
@@ -34,6 +35,7 @@
 		163451DB2DDD107700F00BE9 /* FervoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FervoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		163451E82DDD107800F00BE9 /* FervoAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FervoAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		163451F22DDD107800F00BE9 /* FervoAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FervoAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		168F97532DE3EC2100122D9C /* info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = info.plist; sourceTree = "<group>"; };
 		16BD56D6AE4D94CCFDD3B0D0 /* Pods_FervoAppTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FervoAppTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CB0DE5565C62870BFF23DE2 /* Pods_FervoApp_FervoAppUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FervoApp_FervoAppUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E7942AC235654A59DE30043 /* Pods_FervoApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FervoApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,6 +95,7 @@
 		163451D22DDD107700F00BE9 = {
 			isa = PBXGroup;
 			children = (
+				168F97532DE3EC2100122D9C /* info.plist */,
 				163451DD2DDD107700F00BE9 /* FervoApp */,
 				163451EB2DDD107800F00BE9 /* FervoAppTests */,
 				163451F52DDD107800F00BE9 /* FervoAppUITests */,
@@ -252,6 +255,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				168F97542DE3EC2900122D9C /* info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

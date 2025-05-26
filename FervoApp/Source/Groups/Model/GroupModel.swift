@@ -11,8 +11,8 @@ struct GroupModel: Codable, Identifiable, Equatable {
     let id: String
     let name: String
     let image: ImageModel
-    let creator: String
-    let users: [String]
+    let creator: UserModel
+    let users: [UserModel]
     let createdAt: Date
     let isPrivate: Bool
 

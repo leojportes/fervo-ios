@@ -8,8 +8,8 @@
 import Foundation
 
 struct ConnectionsModel: Decodable, Equatable {
-    let from: String
-    let to: String
+    let from: UserModel
+    let to: UserModel
     let status: String
     let createdAt: Date
 

@@ -12,9 +12,9 @@ struct FixedLocation: Codable, Equatable {
     let website: String?
     let rating: Double?
     let priceLevel: Int?
-    let localImage: String
-    let coordinates: Coordinates
-    let weekdayText: [String]
+    let photoURL: String
+    let location: Coordinates
+    let weekdayText: [String]?
     let reviews: [Review]?
     let type: String
     let city: String
@@ -24,12 +24,12 @@ struct FixedLocation: Codable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case name
-        case placeId = "price_id"
+        case placeId
         case website
         case rating
         case priceLevel = "price_level"
-        case localImage = "local_image"
-        case coordinates
+        case photoURL
+        case location
         case weekdayText = "weekday_text"
         case reviews
         case type
@@ -43,4 +43,9 @@ struct Review: Codable, Equatable {
     let text: String
     let authorName: String
     let rating: Double
+
+    enum CodingKeys: String, CodingKey {
+        case authorName = "author_name"
+        case text, rating
+    }
 }

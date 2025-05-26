@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct StickyHeaderView: View {
-   // let location: LocationWithPosts
+    @State var location: LocationWithPosts
+    let onTap: () -> Void
 
     var body: some View {
         VStack {
             HStack(alignment: .center, spacing: 12) {
-                AsyncImage(url: URL(string: "")) { image in
-               // AsyncImage(url: URL(string: location.photoUrl ?? "")) { image in
+                AsyncImage(url: URL(string: location.fixedLocation.photoURL)) { image in
                     image
                         .resizable()
                         .scaledToFill()
@@ -26,18 +26,18 @@ struct StickyHeaderView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Dont tell Mama")
+                        Text(location.fixedLocation.name)
                             .font(.headline.bold())
-                            .foregroundStyle(Color.black)
-                      //  Text(location.placeIsOpen ? "Aberto" : "Fechado")
-                        Text("Aberto")
-                            .font(.subheadline.bold())
-                            .foregroundColor(.red)
+                            .foregroundStyle(Color.white)
+                        Text(location.placeIsOpen ? "Aberto" : "Fechado")
+                            .font(.caption)
+                            .foregroundColor(location.placeIsOpen ? .green : .red)
+                        
                     }
 
-                    Text("Florianópolis")
-                        .font(.subheadline)
-                        .foregroundColor(.black)
+                    Text(location.fixedLocation.city)
+                        .font(.subheadline.bold())
+                        .foregroundColor(.gray)
                 }
 
                 Spacer()
@@ -49,10 +49,11 @@ struct StickyHeaderView: View {
             .padding(.vertical, 8)
         }
         .background(
-            .ultraThinMaterial.opacity(0.9)
+            Color.FVColor.headerCardbackgroundColor.opacity(0.9)
+                .background(.ultraThinMaterial.opacity(0.8))
         )
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 10)
-        .padding(.horizontal)
+        .padding(.horizontal, 8)
     }
 }

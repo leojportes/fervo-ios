@@ -16,8 +16,11 @@ extension Color {
         static var cardBackground: Color {
             return Color("fv_cardBackgorundColor")
         }
-    }
 
+        static var headerCardbackgroundColor: Color {
+            return Color("fv_headerCardbackgroundColor")
+        }
+    }
 }
 
 extension UIColor {
@@ -29,6 +32,10 @@ extension UIColor {
 
         static var cardBackground: UIColor {
             return UIColor(named: "fv_cardBackgorundColor") ?? .systemGray5
+        }
+
+        static var headerCardbackgroundColor: UIColor {
+            return UIColor(named: "fv_headerCardbackgroundColor") ?? .systemGray4
         }
     }
 
