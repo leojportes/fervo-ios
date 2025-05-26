@@ -6,33 +6,34 @@
 //
 
 import Foundation
+import Foundation
 
 extension Date {
     var timeAgoSinceDate: String {
-        var calendar = Calendar.current
-        calendar.timeZone = TimeZone.current
-
+        let calendar = Calendar.current
         let now = Date()
 
+        // Simplesmente compare diretamente (não ajuste nada)
         let components = calendar.dateComponents(
-            [.minute, .hour, .day, .weekOfYear, .month],
+            [.minute, .hour, .day, .weekOfYear, .month, .year],
             from: self,
             to: now
         )
 
-        if let minutes = components.minute, minutes < 60 {
-            return minutes == 1 ? "há 1 min" : "há \(minutes) min"
-        } else if let hours = components.hour, hours < 24 {
-            return hours == 1 ? "há 1h" : "há \(hours)h"
-        } else if let days = components.day, days < 7 {
-            return days == 1 ? "há 1 dia" : "há \(days) dias"
-        } else if let weeks = components.weekOfYear, weeks < 5 {
-            return weeks == 1 ? "há 1 semana" : "há \(weeks) semanas"
-        } else if let months = components.month, months < 12 {
-            return months == 1 ? "há 1 mês" : "há \(months) meses"
+        if let year = components.year, year > 0 {
+            return year == 1 ? "há 1 ano" : "há \(year) anos"
+        } else if let month = components.month, month > 0 {
+            return month == 1 ? "há 1 mês" : "há \(month) meses"
+        } else if let week = components.weekOfYear, week > 0 {
+            return week == 1 ? "há 1 semana" : "há \(week) semanas"
+        } else if let day = components.day, day > 0 {
+            return day == 1 ? "há 1 dia" : "há \(day) dias"
+        } else if let hour = components.hour, hour > 0 {
+            return hour == 1 ? "há 1h" : "há \(hour)h"
+        } else if let minute = components.minute, minute > 0 {
+            return minute == 1 ? "há 1 min" : "há \(minute) min"
         } else {
-            let years = calendar.component(.year, from: now) - calendar.component(.year, from: self)
-            return years == 1 ? "há 1 ano" : "há \(years) anos"
+            return "agora mesmo"
         }
     }
 }

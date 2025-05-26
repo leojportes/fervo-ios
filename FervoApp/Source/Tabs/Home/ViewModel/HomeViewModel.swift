@@ -27,6 +27,14 @@ class HomeViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSZ"
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .formatted(formatter)
+
         URLSession.shared.dataTaskPublisher(for: url)
             .handleEvents(receiveSubscription: { _ in
                 print("[📡] Requisição iniciada")
@@ -46,7 +54,7 @@ class HomeViewModel: ObservableObject {
                 print("[⚠️] Requisição cancelada")
             })
             .map { $0.data }
-            .decode(type: [LocationWithPosts].self, decoder: JSONDecoder())
+            .decode(type: [LocationWithPosts].self, decoder: decoder)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
                 guard let self = self else { return }

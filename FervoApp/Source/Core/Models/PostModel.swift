@@ -13,7 +13,7 @@ struct Post: Identifiable, Codable, Equatable {
     let userPost: UserModel
     let fixedLocationId: String
     let image: ImageModel
-    let createdAt: String
+    let createdAt: Date
     let likes: Int
     let comments: [PostComment]?
     let likedBy: [UserModel]

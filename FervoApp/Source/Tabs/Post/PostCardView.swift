@@ -28,7 +28,7 @@ struct PostCardView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
 
-                    Text(post.createdAt)
+                    Text(post.createdAt.timeAgoSinceDate)
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
