@@ -6,11 +6,11 @@
 //
 
 import Foundation
-//import FirebaseAuth
+import FirebaseAuth
 
 final class LoginViewModel: ObservableObject {
-    @Published var email: String = ""
-    @Published var password: String = ""
+    @Published var email: String = "leojportes@gmail.com"
+    @Published var password: String = "12345678"
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var isAuthenticated: Bool = false
@@ -20,52 +20,52 @@ final class LoginViewModel: ObservableObject {
     func login() {
         errorMessage = nil
         isLoading = true
+        
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
+            guard let strongSelf = self else { return }
+            DispatchQueue.main.async {
+                strongSelf.isLoading = false
 
-//        Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
-//            guard let strongSelf = self else { return }
-//            DispatchQueue.main.async {
-//                strongSelf.isLoading = false
-//
-//                if let maybeError = error {
-//                    let err = maybeError as NSError
-//                    switch err.code {
-//                    case AuthErrorCode.invalidEmail.rawValue:
-//                        strongSelf.errorMessage = "Formato de email inválido."
-//                        strongSelf.isAuthenticated = false
-//                        return
-//                    default:
-//                        if let typeError = error as? NSError {
-//                            strongSelf.mapFirebaseError(typeError)
-//                            return
-//                        }
-//                    }
-//                }
-//
-//                if let typeError = error as? NSError {
-//                    strongSelf.mapFirebaseError(typeError)
-//                    return
-//                }
-//
-//                if let firebaseUID = result?.user.uid {
-//                    self?.fetchUserData(firebaseUID: firebaseUID) { result in
-//                        switch result {
-//                        case .success(let user):
-////                            FVUserDefaults.set(value: true, forKey: MTKeys.authenticated)
-////                            KeychainService.saveCredentials(email: strongSelf.email, password: strongSelf.password)
-////                            guard let email = Auth.auth().currentUser?.email else { return }
-////                            FVUserDefaults.set(value: true, forKey: email)
-//                            strongSelf.isAuthenticated = true
-//                        case .failure(let error):
-//                            print("❌ Falha ao carregar usuário: \(error.localizedDescription)")
-//                            strongSelf.isAuthenticated = false
-//                        }
-//                    }
-//                } else {
-//                    strongSelf.isAuthenticated = false
-//                    strongSelf.errorMessage = "Ocorreu um erro inesperado.\nPor favor, tente novamente mais tarde."
-//                }
-//            }
-//        }
+                if let maybeError = error {
+                    let err = maybeError as NSError
+                    switch err.code {
+                    case AuthErrorCode.invalidEmail.rawValue:
+                        strongSelf.errorMessage = "Formato de email inválido."
+                        strongSelf.isAuthenticated = false
+                        return
+                    default:
+                        if let typeError = error as? NSError {
+                            strongSelf.mapFirebaseError(typeError)
+                            return
+                        }
+                    }
+                }
+
+                if let typeError = error as? NSError {
+                    strongSelf.mapFirebaseError(typeError)
+                    return
+                }
+
+                if let firebaseUID = result?.user.uid {
+                    self?.fetchUserData(firebaseUID: firebaseUID) { result in
+                        switch result {
+                        case .success(let user):
+                            FVUserDefault.set(value: true, forKey: FVKeys.authenticated)
+                            KeychainService.saveCredentials(email: strongSelf.email, password: strongSelf.password)
+                            guard let email = Auth.auth().currentUser?.email else { return }
+                            FVUserDefault.set(value: true, forKey: email)
+                            strongSelf.isAuthenticated = true
+                        case .failure(let error):
+                            print("❌ Falha ao carregar usuário: \(error.localizedDescription)")
+                            strongSelf.isAuthenticated = false
+                        }
+                    }
+                } else {
+                    strongSelf.isAuthenticated = false
+                    strongSelf.errorMessage = "Ocorreu um erro inesperado.\nPor favor, tente novamente mais tarde."
+                }
+            }
+        }
     }
 
     private func fetchUserData(firebaseUID: String, completion: @escaping (Result<UserModel, Error>) -> Void) {

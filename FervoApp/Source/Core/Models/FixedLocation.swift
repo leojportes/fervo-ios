@@ -5,7 +5,9 @@
 //  Created by Leonardo Jose De Oliveira Portes on 22/05/25.
 //
 
-struct FixedLocation: Codable, Equatable {
+import MapKit
+
+struct FixedLocation: Codable, Equatable, Hashable, Identifiable {
     let id: String
     let name: String
     let placeId: String
@@ -27,19 +29,33 @@ struct FixedLocation: Codable, Equatable {
         case placeId
         case website
         case rating
-        case priceLevel = "price_level"
+        case priceLevel
         case photoURL
         case location
-        case weekdayText = "weekday_text"
+        case weekdayText
         case reviews
         case type
         case city
         case neighborhood
         case userRatingTotal = "user_rating_total"
     }
+
+    var mkCoordinateRegion: MKCoordinateRegion {
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: location.lat, longitude: location.lng),
+            span: MKCoordinateSpan(latitudeDelta: 0.001, longitudeDelta: 0.001)
+        )
+    }
+
+    var mapPriceLevelToString: String {
+        guard let level = priceLevel, (0...4).contains(level) else {
+            return "N/A"
+        }
+        return String(repeating: "$", count: level)
+    }
 }
 
-struct Review: Codable, Equatable {
+struct Review: Codable, Equatable, Hashable {
     let text: String
     let authorName: String
     let rating: Double

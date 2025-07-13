@@ -9,18 +9,18 @@ import SwiftUI
 
 struct DashboardTabView: View {
     @State private var selectedTab: Tab = .home
-    @StateObject var userSession = UserSession()
+    @EnvironmentObject var userSession: UserSession
 
     enum Tab: String, CaseIterable {
         case home
-        case groups
+      //  case groups
         case meetups
         case profile
 
         var title: String {
             switch self {
             case .home: return "Home"
-            case .groups: return "Grupos"
+          //  case .groups: return "Grupos"
             case .meetups: return "Rolês"
             case .profile: return "Perfil"
             }
@@ -29,7 +29,7 @@ struct DashboardTabView: View {
         var icon: String {
             switch self {
             case .home: return "house"
-            case .groups: return "person.3"
+          //  case .groups: return "person.3"
             case .meetups: return "ticket"
             case .profile: return "person"
             }
@@ -38,7 +38,7 @@ struct DashboardTabView: View {
         var selectedIcon: String {
             switch self {
             case .home: return "house.fill"
-            case .groups: return "person.3.fill"
+           // case .groups: return "person.3.fill"
             case .meetups: return "ticket.fill"
             case .profile: return "person.fill"
             }
@@ -66,12 +66,12 @@ struct DashboardTabView: View {
         switch tab {
         case .home:
             return AnyView(HomeView().environmentObject(userSession))
-        case .groups:
-            return AnyView(VStack{ })
+      //  case .groups:
+      //      return AnyView(VStack{ })
         case .meetups:
             return AnyView(VStack{ })
         case .profile:
-            return AnyView(VStack{ })
+            return AnyView(ProfileView().environmentObject(userSession))
         }
     }
 }

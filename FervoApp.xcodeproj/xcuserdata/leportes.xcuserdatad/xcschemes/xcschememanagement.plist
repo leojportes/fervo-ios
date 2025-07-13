@@ -7,7 +7,25 @@
 		<key>FervoApp.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>3</integer>
+			<integer>28</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>163451DA2DDD107700F00BE9</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>163451E72DDD107800F00BE9</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>163451F12DDD107800F00BE9</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

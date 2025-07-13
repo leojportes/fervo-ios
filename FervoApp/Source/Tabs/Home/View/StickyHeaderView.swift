@@ -32,7 +32,6 @@ struct StickyHeaderView: View {
                         Text(location.placeIsOpen ? "Aberto" : "Fechado")
                             .font(.caption)
                             .foregroundColor(location.placeIsOpen ? .green : .red)
-                        
                     }
 
                     Text(location.fixedLocation.city)
@@ -55,5 +54,8 @@ struct StickyHeaderView: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 10)
         .padding(.horizontal, 8)
+        .onTapGesture {
+            onTap()
+        }
     }
 }

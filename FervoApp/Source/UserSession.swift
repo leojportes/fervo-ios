@@ -7,22 +7,23 @@
 
 import Foundation
 import SwiftUI
+import FirebaseAuth
 
 class UserSession: ObservableObject {
     @Published var isAuthenticated: Bool? = nil
     @Published var userProfileImage: Image? = nil
     @Published var currentUser: UserModel? {
         didSet {
-            saveToUserDefaults()
+            //saveToUserDefaults()
             loadUserProfileImage()
         }
     }
 
     init() {
-        loadFromUserDefaults()
+        //loadFromUserDefaults()
         loadUserProfileImage()
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            self.autoLogin()
+          //  self.autoLogin()
         }
     }
 
@@ -49,11 +50,11 @@ class UserSession: ObservableObject {
             return
         }
 
-//        FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password) { _, error in
-//            DispatchQueue.main.async {
-//                self.isAuthenticated = error == nil
-//            }
-//        }
+        FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password) { _, error in
+            DispatchQueue.main.async {
+                self.isAuthenticated = error == nil
+            }
+        }
     }
 
     func loadUserProfileImage() {

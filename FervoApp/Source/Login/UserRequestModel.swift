@@ -5,6 +5,7 @@
 //  Created by Leonardo Jose De Oliveira Portes on 20/05/25.
 //
 
+
 struct UserModel: Codable, Equatable, Hashable {
     let firebaseUid: String
     let email: String

@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct Post: Identifiable, Codable, Equatable {
+struct Post: Identifiable, Codable, Equatable, Hashable {
     let id: String
-    let userId: String
+    let firebaseId: String
     let userPost: UserModel
     let fixedLocationId: String
     let image: ImageModel
@@ -20,7 +20,7 @@ struct Post: Identifiable, Codable, Equatable {
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
-        case userId = "user_id"
+        case firebaseId = "firebase_uid"
         case userPost = "user_post"
         case fixedLocationId = "fixed_location_id"
         case image

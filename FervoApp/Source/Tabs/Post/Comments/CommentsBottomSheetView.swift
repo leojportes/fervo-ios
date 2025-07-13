@@ -24,6 +24,7 @@ struct CommentsBottomSheetView: View {
                             .padding(.bottom, 60)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
+                            .foregroundStyle(.gray)
                     } else {
                         ForEach(viewModel.comments, id: \.self) { comment in
                             HStack(alignment: .top, spacing: 12) {

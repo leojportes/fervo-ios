@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LocationWithPosts: Identifiable, Decodable, Equatable {
+struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
     var id: String {
         return "\(fixedLocation.name)-\(fixedLocation.city)"
     }
@@ -110,7 +110,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable {
 
 }
 
-struct Coordinates: Codable, Equatable {
+struct Coordinates: Codable, Equatable, Hashable {
     let lat: Double
     let lng: Double
 }

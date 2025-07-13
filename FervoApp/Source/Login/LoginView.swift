@@ -7,75 +7,98 @@
 
 
 import SwiftUI
-//import FirebaseCore
-
-import SwiftUI
 
 struct LoginView: View {
-    @State private var email: String = ""
-    @State private var password: String = ""
-    @State private var showPassword: Bool = false
+    @EnvironmentObject var viewModel: LoginViewModel
 
     var body: some View {
-        VStack(spacing: 30) {
-            // Título
-            Text("Fervo")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
+        NavigationView {
+            ZStack {
+                Color.black.edgesIgnoringSafeArea(.all) // fundo escuro
 
-            // Email Field
-            HStack {
-                Image(systemName: "envelope")
-                    .foregroundColor(.gray)
-                TextField("Email", text: $email)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-            }
-            .padding()
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(10)
+                VStack(spacing: 24) {
+                    Spacer()
 
-            // Password Field
-            HStack {
-                Image(systemName: "lock")
-                    .foregroundColor(.gray)
-                if showPassword {
-                    TextField("Senha", text: $password)
-                } else {
-                    SecureField("Senha", text: $password)
-                }
-                Button(action: {
-                    showPassword.toggle()
-                }) {
-                    Image(systemName: showPassword ? "eye.slash" : "eye")
+                    // Título
+                    Text("Bem-vindo de volta 👋")
+                        .font(.largeTitle.bold())
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+
+                    Text("Faça login para continuar")
+                        .font(.subheadline)
                         .foregroundColor(.gray)
+
+                    // Campos de texto
+                    VStack(spacing: 16) {
+                        TextField("Email", text: $viewModel.email)
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                            .foregroundColor(.gray)
+
+                        SecureField("Senha", text: $viewModel.password)
+                            .padding()
+                            .background(Color(.secondarySystemBackground))
+                            .cornerRadius(12)
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.horizontal)
+
+                    // Mensagem de erro
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+
+                    // Botão de login
+                    Button(action: {
+                        viewModel.login()
+                    }) {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.purple.opacity(0.8))
+                                .cornerRadius(12)
+                        } else {
+                            Text("Entrar")
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.purple.opacity(0.8))
+                                .cornerRadius(12)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .disabled(viewModel.isLoading)
+
+                    // Link de cadastro
+                    HStack {
+                        Text("Ainda não tem conta?")
+                            .foregroundColor(.gray)
+                        Button(action: {
+                            // Ação para navegar para cadastro
+                        }) {
+                            Text("Cadastrar")
+                                .foregroundColor(.purple)
+                                .fontWeight(.semibold)
+                        }
+                    }
+
+                    Spacer()
                 }
             }
-            .padding()
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(10)
-
-            // Botão Entrar
-            Button(action: {
-                // Lógica de login aqui
-            }) {
-                Text("Entrar")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-
-            Spacer()
+            .navigationBarHidden(true)
         }
-        .padding()
-        .background(Color.black.edgesIgnoringSafeArea(.all))
-        .ignoresSafeArea(.keyboard, edges: .bottom)
-        .preferredColorScheme(.dark)
-        .navigationBarBackButtonHidden()
     }
 }
 

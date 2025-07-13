@@ -8,80 +8,77 @@
 import SwiftUI
 
 struct HomeView: View {
+    // MARK: - Dependencies
+    @EnvironmentObject var userSession: UserSession
     @StateObject private var viewModel = HomeViewModel()
-    @State var selectedLocation: LocationWithPosts?
+
+    @State var selectedPostForComments: Post?
+    @State private var selectedLocation: LocationWithPosts?
+
+    // MARK: - Actions
+    @State var isSearchViewPresented: Bool = false
     @State var isShowingLocationDetail: Bool = false
     @State var isCommentsSheetPresented: Bool = false
-    @State var selectedPostForComments: Post?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            headerView
-            ScrollView {
-                searchTappedView
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                headerView
+                ScrollView {
+                    searchTappedView
 
-                Divider()
-                    .background(Color.gray.opacity(0.2))
-                    .padding(.horizontal)
-                    .padding(.bottom)
+                    Divider()
+                        .background(Color.gray.opacity(0.2))
+                        .padding(.horizontal)
+                        .padding(.bottom)
 
-                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    ForEach(viewModel.locationsWithPosts, id: \.id) { location in
-                        Section(
-                            header:
-                                StickyHeaderView(location: location) {
-                                    // self.selectedLocation = location
-                                    // self.isShowingLocationDetail = true
-                                }
-                        ) {
-                            ForEach(Array(location.lastThreePosts.enumerated()), id: \.element.id) { index, post in
-                                let isLast = index == location.lastThreePosts.count - 1
-                                PostCardView(post: post, onCommentTapped: {
-                                    self.selectedPostForComments = post
-                                    self.isCommentsSheetPresented = true
-                                })
-                                .padding(.horizontal)
-                                .padding(.top, 12)
-
-                                if isLast {
-                                    Button("Ver mais em \(location.fixedLocation.name)") {
-                                      //  self.selectedLocation = post.fixedLocation
-                                        self.isShowingLocationDetail = true
-                                    }
-                                    .font(.subheadline)
-                                    .padding(.vertical, 16)
-                                }
-                            }
+                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        ForEach(viewModel.locationsWithPosts, id: \.id) { location in
+                            locationSection(for: location)
                         }
                     }
+                    .bottomSheet(item: $selectedPostForComments) { post in
+                        CommentsBottomSheetView(postId: post.id)
+                    }
+                    .coordinateSpace(name: "scroll")
+                    .sheet(isPresented: $isSearchViewPresented) {
+                        SearchView()
+                    }
+                    .navigationDestination(item: $selectedLocation) { location in
+                        PlaceView(location: location)
+                    }
                 }
-                .bottomSheet(item: $selectedPostForComments) { post in
-                    CommentsBottomSheetView(postId: post.id)
-                }
-                .coordinateSpace(name: "scroll")
-            }
 
-        }
-        .background(Color.FVColor.backgroundDark)
-        .navigationBarBackButtonHidden()
-        .onAppear() {
-            viewModel.fetch()
-            customizeNavigationBar()
+            }
+            .background(Color.FVColor.backgroundDark)
+            .navigationBarBackButtonHidden()
+            .onAppear() {
+                viewModel.fetch()
+                customizeNavigationBar()
+            }
         }
     }
 
-    // MARK: - Components
+    // MARK: - View Components
     private var headerView: some View {
         HStack {
-            Image(systemName: "person.circle.fill")
-                .resizable()
-                .frame(width: 40, height: 40)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .foregroundColor(.white)
+            if let avatar = userSession.userProfileImage {
+                avatar
+                    .resizable()
+                    .clipShape(Circle())
+                    .frame(width: 40, height: 40)
+            } else {
+                Circle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 40, height: 40)
+                    .shimmering()
+            }
 
-            Text("Olá, Leonardo Portes!")
-                .font(.subheadline)
-                .foregroundColor(.white)
+            if let name = userSession.currentUser?.name {
+                Text("Olá, \(name)!")
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+            }
 
             Spacer()
         }
@@ -92,7 +89,7 @@ struct HomeView: View {
     private var searchTappedView: some View {
         VStack(alignment: .leading, spacing: 16) {
             Button(action: {
-                print("Clicou na view")
+                isSearchViewPresented = true
             }) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Qual o rolê de hoje?")
@@ -127,6 +124,35 @@ struct HomeView: View {
             Spacer()
         }
         .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private func locationSection(for location: LocationWithPosts) -> some View {
+        Section(
+            header: StickyHeaderView(location: location) {
+                DispatchQueue.main.async {
+                    self.selectedLocation = location
+                }
+            }
+        ) {
+            ForEach(Array(location.lastThreePosts.enumerated()), id: \.element.id) { index, post in
+                let isLast = index == location.lastThreePosts.count - 1
+                PostCardView(post: post, onCommentTapped: {
+                    self.selectedPostForComments = post
+                    self.isCommentsSheetPresented = true
+                })
+                .padding(.horizontal)
+                .padding(.top, 12)
+
+                if isLast {
+                    Button("Ver mais em \(location.fixedLocation.name)") {
+                        self.selectedLocation = location
+                    }
+                    .font(.subheadline)
+                    .padding(.vertical, 16)
+                }
+            }
+        }
     }
 
     private func customizeNavigationBar() {
