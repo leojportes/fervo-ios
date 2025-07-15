@@ -10,6 +10,7 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var viewModel: LoginViewModel
+    @EnvironmentObject var userSession: UserSession
 
     var body: some View {
         NavigationView {
@@ -59,7 +60,7 @@ struct LoginView: View {
 
                     // Botão de login
                     Button(action: {
-                        viewModel.login()
+                        viewModel.login(userSession: userSession)
                     }) {
                         if viewModel.isLoading {
                             ProgressView()

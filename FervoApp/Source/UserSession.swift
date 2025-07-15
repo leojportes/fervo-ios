@@ -14,17 +14,16 @@ class UserSession: ObservableObject {
     @Published var userProfileImage: Image? = nil
     @Published var currentUser: UserModel? {
         didSet {
-            //saveToUserDefaults()
-            loadUserProfileImage()
+            if let user = currentUser {
+                print("✅ UserSession: Usuário atualizado: \(user.name)")
+                loadUserProfileImage()
+            }
         }
     }
 
     init() {
-        //loadFromUserDefaults()
+        loadFromUserDefaults()
         loadUserProfileImage()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-          //  self.autoLogin()
-        }
     }
 
     func saveToUserDefaults() {
@@ -37,40 +36,44 @@ class UserSession: ObservableObject {
     }
 
     func clear() {
-        currentUser = nil
+        try? Auth.auth().signOut()
         FVUserDefault.remove(key: FVKeys.currentUser)
+        self.isAuthenticated = false
+        self.currentUser = nil
+        self.userProfileImage = nil
+        KeychainService.deleteCredentials()
     }
 
-    func autoLogin() {
-        let data = KeychainService.loadCredentials()
-        guard KeychainService.verifyIfExists(),
-              let email = data.first,
-              let password = data.last else {
-            isAuthenticated = false
-            return
-        }
-
-        FirebaseAuth.Auth.auth().signIn(withEmail: email, password: password) { _, error in
-            DispatchQueue.main.async {
-                self.isAuthenticated = error == nil
-            }
+    func signOut(result: (Bool) -> Void) {
+        let firebaseAuth = Auth.auth()
+        do {
+            try firebaseAuth.signOut()
+            clear()
+            result(true)
+        } catch {
+            result(false)
         }
     }
 
-    func loadUserProfileImage() {
+    private func loadUserProfileImage() {
         guard let urlString = currentUser?.image?.photoURL,
               let url = URL(string: urlString) else {
-            userProfileImage = nil
+            print("⚠️ Nenhuma URL de foto de perfil encontrada ou URL inválida")
             return
         }
 
-        // Carrega a imagem de forma assíncrona
+        print("🔗 Buscando imagem de perfil em: \(urlString)")
         DispatchQueue.global().async {
             if let data = try? Data(contentsOf: url),
                let uiImage = UIImage(data: data) {
-                let image = Image(uiImage: uiImage)
                 DispatchQueue.main.async {
-                    self.userProfileImage = image
+                    self.userProfileImage = Image(uiImage: uiImage)
+                    print("✅ Imagem de perfil carregada com sucesso")
+                }
+            } else {
+                DispatchQueue.main.async {
+                    print("❌ Falha ao carregar a imagem de perfil")
+                    self.userProfileImage = nil
                 }
             }
         }

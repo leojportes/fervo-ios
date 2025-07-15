@@ -10,6 +10,8 @@ import SwiftUI
 struct HomeView: View {
     // MARK: - Dependencies
     @EnvironmentObject var userSession: UserSession
+    @EnvironmentObject var loginViewModel: LoginViewModel
+
     @StateObject private var viewModel = HomeViewModel()
 
     @State var selectedPostForComments: Post?
@@ -81,6 +83,18 @@ struct HomeView: View {
             }
 
             Spacer()
+            Button(action: {
+                self.userSession.signOut { success in
+                    if success {
+                        loginViewModel.isAuthenticated = false
+                        FervoAppApp.resetApp()
+                    } else {
+                        print("❌ Logout falhou")
+                    }
+                }
+            }) {
+                Label("LOGOUT", systemImage: "magnifyingglass")
+            }
         }
         .padding(.horizontal)
         .padding(.top)

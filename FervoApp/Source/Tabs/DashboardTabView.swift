@@ -10,6 +10,7 @@ import SwiftUI
 struct DashboardTabView: View {
     @State private var selectedTab: Tab = .home
     @EnvironmentObject var userSession: UserSession
+    @EnvironmentObject var loginViewModel: LoginViewModel
 
     enum Tab: String, CaseIterable {
         case home
@@ -22,7 +23,7 @@ struct DashboardTabView: View {
             case .home: return "Home"
           //  case .groups: return "Grupos"
             case .meetups: return "Rolês"
-            case .profile: return "Perfil"
+            case .profile: return "Você"
             }
         }
 
@@ -65,15 +66,24 @@ struct DashboardTabView: View {
     private func contentView(for tab: Tab) -> some View {
         switch tab {
         case .home:
-            return AnyView(HomeView().environmentObject(userSession))
-      //  case .groups:
-      //      return AnyView(VStack{ })
+            return AnyView(
+                HomeView()
+                    .environmentObject(userSession)
+                    .environmentObject(loginViewModel)
+            )
+            //  case .groups:
+            //      return AnyView(VStack{ })
         case .meetups:
-            return AnyView(VStack{ })
+            return AnyView(VStack{})
         case .profile:
-            return AnyView(ProfileView().environmentObject(userSession))
+            return AnyView(
+                ProfileView(userModel: nil)
+                    .environmentObject(userSession)
+                    .environmentObject(loginViewModel)
+            )
         }
     }
+
 }
 
 extension DashboardTabView {

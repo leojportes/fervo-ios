@@ -15,16 +15,16 @@ final class ProfileViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private var cancellables = Set<AnyCancellable>()
+    private var isFetching: Bool = false  // flag para evitar chamadas duplicadas
 
-    func fetchUserPosts() {
-        guard let user = Auth.auth().currentUser else {
-            self.errorMessage = "Usuário não autenticado"
-            return
-        }
-
+    func fetchUserPosts(firebaseUID: String) {
+        guard !isFetching else { return }  // evita chamadas concorrentes
+        isFetching = true
         isLoading = true
-        user.getIDToken { [weak self] token, error in
+
+        Auth.auth().currentUser?.getIDToken { [weak self] token, error in
             guard let self = self else { return }
+            defer { self.isFetching = false }  // libera a flag ao final da execução
 
             if let error = error {
                 self.errorMessage = "Erro ao obter token: \(error.localizedDescription)"
@@ -38,7 +38,7 @@ final class ProfileViewModel: ObservableObject {
                 return
             }
 
-            self.performRequest(firebaseUID: user.uid, token: token)
+            self.performRequest(firebaseUID: firebaseUID, token: token)
         }
     }
 

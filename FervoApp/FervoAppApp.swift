@@ -12,17 +12,54 @@ struct FervoAppApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject var userSession = UserSession()
     @StateObject var loginViewModel = LoginViewModel()
+    @State private var appVersion = UUID()
 
     var body: some Scene {
         WindowGroup {
-            if loginViewModel.isAuthenticated {
+            RootView()
+                .environmentObject(userSession)
+                .environmentObject(loginViewModel)
+                .id(appVersion)
+                .onAppear() {
+                    loginViewModel.autoLoginIfNeeded()
+                }
+        }
+    }
+
+    static func resetApp() {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        scene.windows.first?.rootViewController = UIHostingController(
+            rootView: RootView()
+                .environmentObject(UserSession())
+                .environmentObject(LoginViewModel())
+        )
+        scene.windows.first?.makeKeyAndVisible()
+    }
+}
+
+struct RootView: View {
+    @EnvironmentObject var userSession: UserSession
+    @EnvironmentObject var loginViewModel: LoginViewModel
+
+    var body: some View {
+        Group {
+            if loginViewModel.isLoading {
+                // 👇 Pode ser um splash screen ou só um ProgressView
+                ProgressView("Verificando autenticação...")
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.ignoresSafeArea())
+            } else if loginViewModel.isAuthenticated {
                 DashboardTabView()
                     .environmentObject(userSession)
+                    .environmentObject(loginViewModel)
             } else {
                 LoginView()
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
             }
         }
+        .animation(.easeInOut, value: loginViewModel.isAuthenticated)
+        .animation(.easeInOut, value: loginViewModel.isLoadingAuthState)
     }
 }

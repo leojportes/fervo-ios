@@ -10,12 +10,17 @@ struct ProfileView: View {
     @EnvironmentObject var userSession: UserSession
     @StateObject private var viewModel = ProfileViewModel()
     @State private var selectedTab: ProfileTab = .feed
-    @State var userModel: UserModel?
+    let userModel: UserModel?  // Agora é let, parâmetro da view
     @Environment(\.dismiss) private var dismiss
 
     enum ProfileTab {
         case feed
         case atividades
+    }
+
+    // Computed property para escolher qual usuário mostrar
+    private var userToShow: UserModel? {
+        userModel ?? userSession.currentUser
     }
 
     var body: some View {
@@ -35,10 +40,10 @@ struct ProfileView: View {
                 .padding(.horizontal)
                 .background(Color.FVColor.backgroundDark)
             }
-            // Top profile info
+
             HStack(alignment: .top) {
-                if let user = userModel {
-                    AsyncImage(url: URL(string: user.image?.photoURL ?? "")) { image in
+                if let url = userToShow?.image?.photoURL {
+                    AsyncImage(url: URL(string: url)) { image in
                         image
                             .resizable()
                             .clipShape(Circle())
@@ -49,19 +54,8 @@ struct ProfileView: View {
                             .frame(width: 60, height: 60)
                             .shimmering()
                     }
-                } else if let avatar = userSession.userProfileImage {
-                    avatar
-                        .resizable()
-                        .clipShape(Circle())
-                        .frame(width: 60, height: 60)
-                } else {
-                    Circle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 60, height: 60)
-                        .shimmering()
                 }
-
-                if let user = userModel {
+                if let user = userToShow {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(user.name)
                             .font(.headline)
@@ -70,20 +64,11 @@ struct ProfileView: View {
                             .font(.subheadline)
                             .foregroundColor(.gray)
                     }
-                } else if let currentUser = userSession.currentUser {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(currentUser.name)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Text("\(currentUser.age) anos")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
                 }
 
                 Spacer()
 
-                if userSession.currentUser?.firebaseUid == userModel?.firebaseUid {
+                if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
                     Button(action: {
                         print("Solicitações")
                     }) {
@@ -92,7 +77,6 @@ struct ProfileView: View {
                             .foregroundColor(.blue.opacity(0.8))
                     }
                 }
-
             }
             .padding(.horizontal)
 
@@ -118,6 +102,7 @@ struct ProfileView: View {
             }
             .padding(.horizontal)
 
+            // Tabs
             HStack {
                 Button(action: {
                     selectedTab = .feed
@@ -149,7 +134,6 @@ struct ProfileView: View {
                 .background(Color.gray.opacity(0.3))
                 .padding(.horizontal)
 
-            // Content based on selected tab
             ScrollView {
                 switch selectedTab {
                 case .feed: makePostView()
@@ -159,8 +143,10 @@ struct ProfileView: View {
         }
         .background(Color.fvBackground)
         .onAppear {
-            viewModel.fetchUserPosts()
-            customizeNavigationBar()
+            if let user = userToShow {
+                viewModel.fetchUserPosts(firebaseUID: user.firebaseUid)
+                customizeNavigationBar()
+            }
         }
         .navigationBarBackButtonHidden()
     }
@@ -209,13 +195,12 @@ struct ProfileView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
-    
 }
 
-struct ProfileView_Previews: PreviewProvider {
-    static var previews: some View {
-        ProfileView()
-            .environmentObject(UserSession()) // Adiciona o ambiente necessário
-    }
-}
+
+//struct ProfileView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ProfileView()
+//            .environmentObject(UserSession()) // Adiciona o ambiente necessário
+//    }
+//}
