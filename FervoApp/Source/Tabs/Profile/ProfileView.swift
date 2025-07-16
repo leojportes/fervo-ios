@@ -10,7 +10,7 @@ struct ProfileView: View {
     @EnvironmentObject var userSession: UserSession
     @StateObject private var viewModel = ProfileViewModel()
     @State private var selectedTab: ProfileTab = .feed
-    let userModel: UserModel?  // Agora é let, parâmetro da view
+    let userModel: UserModel?
     @Environment(\.dismiss) private var dismiss
 
     enum ProfileTab {
@@ -18,7 +18,6 @@ struct ProfileView: View {
         case atividades
     }
 
-    // Computed property para escolher qual usuário mostrar
     private var userToShow: UserModel? {
         userModel ?? userSession.currentUser
     }
