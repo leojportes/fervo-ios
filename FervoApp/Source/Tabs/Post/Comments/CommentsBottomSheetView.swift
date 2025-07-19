@@ -9,13 +9,16 @@ import SwiftUI
 
 struct CommentsBottomSheetView: View {
     @StateObject private var viewModel = CommentsViewModel()
+    let userSession: UserSession
     var postId: String
     @State private var newComment: String = ""
+    @State private var hasNewComment = false
+    let onDisappear: (Bool) -> Void
 
     var body: some View {
         VStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading) {
                     if viewModel.comments.isEmpty {
                         Text("Ainda não há\n nenhum comentário")
                             .font(.headline)
@@ -31,61 +34,71 @@ struct CommentsBottomSheetView: View {
                                 AsyncImage(url: URL(string: comment.user.image?.photoURL ?? "")) { image in
                                     image.resizable()
                                         .scaledToFill()
-                                        .frame(width: 40, height: 40)
+                                        .frame(width: 35, height: 35)
                                         .clipShape(Circle())
                                         .overlay(Circle().stroke(Color.gray, lineWidth: 1))
                                         .shadow(radius: 2)
                                 } placeholder: {
                                     Color.gray.opacity(0.3).frame(width: 40, height: 40).clipShape(Circle())
                                 }
-                            }
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text(comment.user.username)
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.primary)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text("@\(comment.user.username)")
+                                            .font(.caption.bold())
+                                            .foregroundColor(.white)
 
-                                    Text(comment.createdAt)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        Text(comment.createdAt.timeAgoSinceDate)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
 
-                                    Spacer()
+                                        Spacer()
+                                    }
+
+                                    Text(comment.text)
+                                        .font(.footnote)
+                                        .foregroundColor(.white)
                                 }
-
-                                Text(comment.text)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
                             }
-
+                            .padding(.leading, 16)
+                            .padding(.top, 10)
                         }
-                        .padding(.vertical, 4)
-
                     }
                 }
             }
+            .padding(.bottom, 50)
 
             Spacer()
 
             HStack {
-                TextField("Adicione um comentário...", text: $newComment)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .frame(minHeight: 44)
-                    .onChange(of: newComment) { newValue in
-                        if newValue.count > 50 {
-                            newComment = String(newValue.prefix(50))
-                        }
+                TextField(
+                    "",
+                    text: $newComment,
+                    prompt: Text("Adicione um comentário...")
+                        .foregroundColor(.gray)
+                )
+                .padding(12)
+                .background(Color.FVColor.headerCardbackgroundColor)
+                .cornerRadius(8)
+                .foregroundColor(.white)
+                .onChange(of: newComment) { newValue in
+                    if newValue.count > 50 {
+                        newComment = String(newValue.prefix(50))
                     }
+                }
 
                 Button(action: {
-                    viewModel.sendComment(postID: postId, userID: "", text: newComment) { result in
-                        switch result {
-                        case .success:
-                            newComment = ""
-                            viewModel.fetchComments(for: postId)
-                        case .failure(let error):
-                            print("Erro ao enviar comentário: \(error.localizedDescription)")
+                    if let firebaseUid = userSession.currentUser?.firebaseUid {
+                        viewModel.sendComment(postID: postId, firebaseUID: firebaseUid, text: newComment) { result in
+                            switch result {
+                            case .success:
+                                hasNewComment = true
+                                newComment = ""
+                                viewModel.fetchComments(for: postId)
+                            case .failure(let error):
+                                hasNewComment = false
+                                print("Erro ao enviar comentário: \(error.localizedDescription)")
+                            }
                         }
                     }
                 }) {
@@ -100,5 +113,9 @@ struct CommentsBottomSheetView: View {
         .onAppear {
             viewModel.fetchComments(for: postId)
         }
+        .onDisappear {
+            onDisappear(hasNewComment)
+        }
+        .background(Color.fvCardBackgorund)
     }
 }

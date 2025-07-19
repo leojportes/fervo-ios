@@ -10,7 +10,7 @@ import Foundation
 struct PostComment: Codable, Equatable, Hashable {
     let user: UserModel
     let text: String
-    let createdAt: String
+    let createdAt: Date
 
     enum CodingKeys: String, CodingKey {
         case user

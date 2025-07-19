@@ -5,65 +5,85 @@
 //  Created by Leonardo Jose De Oliveira Portes on 22/05/25.
 //
 
+//
+//  HomeView.swift
+//  FervoApp
+//
+//  Created by Leonardo Jose De Oliveira Portes on 22/05/25.
+//
+
 import SwiftUI
 
 struct HomeView: View {
     // MARK: - Dependencies
+    @Binding var selectedTab: Tab
+    @Binding var selectedUserModel: UserModel?
     @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var loginViewModel: LoginViewModel
 
+    // MARK: - ViewModel
     @StateObject private var viewModel = HomeViewModel()
 
-    @State var selectedPostForComments: Post?
+    // MARK: - State
+    @State private var selectedPostForComments: Post?
     @State private var selectedLocation: LocationWithPosts?
+    @State private var selectedPostToNavigateProfile: Post?
+    @State private var isSearchViewPresented: Bool = false
 
-    // MARK: - Actions
-    @State var isSearchViewPresented: Bool = false
-    @State var isShowingLocationDetail: Bool = false
-    @State var isCommentsSheetPresented: Bool = false
-
+    // MARK: - Body
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
                 headerView
                 ScrollView {
+                    sectionTitle
                     searchTappedView
-
                     Divider()
                         .background(Color.gray.opacity(0.2))
                         .padding(.horizontal)
                         .padding(.bottom)
 
-                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                        ForEach(viewModel.locationsWithPosts, id: \.id) { location in
-                            locationSection(for: location)
-                        }
-                    }
-                    .bottomSheet(item: $selectedPostForComments) { post in
-                        CommentsBottomSheetView(postId: post.id)
-                    }
-                    .coordinateSpace(name: "scroll")
-                    .sheet(isPresented: $isSearchViewPresented) {
-                        SearchView()
-                    }
-                    .navigationDestination(item: $selectedLocation) { location in
-                        PlaceView(location: location)
-                    }
+                    postsList
                 }
-
+                .background(Color.FVColor.backgroundDark)
+                .coordinateSpace(name: "scroll")
+                .bottomSheet(item: $selectedPostForComments) { post in
+                    CommentsBottomSheetView(
+                        userSession: userSession,
+                        postId: post.id,
+                        onDisappear: { hasNewComment in
+                            if hasNewComment {
+                                viewModel.fetch()
+                            }
+                        }
+                    )
+                }
+                .sheet(isPresented: $isSearchViewPresented) {
+                    PeoplePlacesView()
+                }
+                .navigationDestination(item: $selectedLocation) { location in
+                    PlaceView(location: location, userSession: userSession)
+                }
+                .navigationDestination(item: $selectedPostToNavigateProfile) { userModel in
+                    ProfileView(userModel: userModel.userPost)
+                }
             }
             .background(Color.FVColor.backgroundDark)
             .navigationBarBackButtonHidden()
-            .onAppear() {
+            .onAppear {
                 viewModel.fetch()
                 customizeNavigationBar()
             }
         }
     }
+}
 
-    // MARK: - View Components
-    private var headerView: some View {
+// MARK: - Subviews
+private extension HomeView {
+    var headerView: some View {
         HStack {
+            // MARK: - Avatar e Nome do Usuário (comentado para futura implementação)
+            /*
             if let avatar = userSession.userProfileImage {
                 avatar
                     .resizable()
@@ -81,18 +101,11 @@ struct HomeView: View {
                     .font(.subheadline)
                     .foregroundColor(.white)
             }
+            */
 
             Spacer()
-            Button(action: {
-                self.userSession.signOut { success in
-                    if success {
-                        loginViewModel.isAuthenticated = false
-                        FervoAppApp.resetApp()
-                    } else {
-                        print("❌ Logout falhou")
-                    }
-                }
-            }) {
+
+            Button(action: handleLogout) {
                 Label("LOGOUT", systemImage: "magnifyingglass")
             }
         }
@@ -100,11 +113,23 @@ struct HomeView: View {
         .padding(.top)
     }
 
-    private var searchTappedView: some View {
+    var sectionTitle: some View {
+        HStack {
+            Text("Explorar")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .background(Color.FVColor.backgroundDark)
+    }
+
+    var searchTappedView: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Button(action: {
-                isSearchViewPresented = true
-            }) {
+            Button(action: { isSearchViewPresented = true }) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Qual o rolê de hoje?")
                         .font(.title3)
@@ -124,7 +149,8 @@ struct HomeView: View {
                     .padding()
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.FVColor.headerCardbackgroundColor).opacity(0.5)
+                            .fill(Color.FVColor.headerCardbackgroundColor)
+                            .opacity(0.5)
                     )
                 }
                 .padding()
@@ -140,27 +166,41 @@ struct HomeView: View {
         .padding(.horizontal)
     }
 
+    var postsList: some View {
+        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+            ForEach(viewModel.locationsWithPosts, id: \.id) { location in
+                locationSection(for: location)
+            }
+        }
+    }
+
     @ViewBuilder
-    private func locationSection(for location: LocationWithPosts) -> some View {
+    func locationSection(for location: LocationWithPosts) -> some View {
         Section(
             header: StickyHeaderView(location: location) {
                 DispatchQueue.main.async {
-                    self.selectedLocation = location
+                    selectedLocation = location
                 }
             }
         ) {
             ForEach(Array(location.lastThreePosts.enumerated()), id: \.element.id) { index, post in
                 let isLast = index == location.lastThreePosts.count - 1
-                PostCardView(post: post, onCommentTapped: {
-                    self.selectedPostForComments = post
-                    self.isCommentsSheetPresented = true
-                })
+
+                PostCardView(
+                    post: post,
+                    onCommentTapped: {
+                        selectedPostForComments = post
+                    },
+                    onPostTapped: {
+                        handlePostTap(post)
+                    }
+                )
                 .padding(.horizontal)
                 .padding(.top, 12)
 
                 if isLast {
                     Button("Ver mais em \(location.fixedLocation.name)") {
-                        self.selectedLocation = location
+                        selectedLocation = location
                     }
                     .font(.subheadline)
                     .padding(.vertical, 16)
@@ -168,8 +208,31 @@ struct HomeView: View {
             }
         }
     }
+}
 
-    private func customizeNavigationBar() {
+// MARK: - Actions
+private extension HomeView {
+    func handleLogout() {
+        userSession.signOut { success in
+            if success {
+                loginViewModel.isAuthenticated = false
+                FervoAppApp.resetApp()
+            } else {
+                print("❌ Logout falhou")
+            }
+        }
+    }
+
+    func handlePostTap(_ post: Post) {
+        if post.userPost.firebaseUid == userSession.currentUser?.firebaseUid {
+            selectedUserModel = post.userPost
+            selectedTab = .profile
+        } else {
+            selectedPostToNavigateProfile = post
+        }
+    }
+
+    func customizeNavigationBar() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor.gray
@@ -178,9 +241,4 @@ struct HomeView: View {
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
-}
-
-#Preview {
-    HomeView()
-        .preferredColorScheme(.dark)
 }

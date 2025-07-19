@@ -52,60 +52,74 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "pt_BR")
         formatter.dateFormat = "EEEE"
-        let today = formatter.string(from: Date()).lowercased()
 
-        // 2. Encontramos a string correspondente ao dia atual
-        guard let todayLine = weekDays.first(where: { $0.lowercased().hasPrefix(today) }) else {
-            return false
-        }
-
-        // 3. Verificamos se está "Fechado"
-        if todayLine.lowercased().contains("fechado") {
-            return false
-        }
-
-        // 4. Extraímos os horários de abertura e fechamento
-        let timeRange = todayLine.components(separatedBy: ":").dropFirst().joined(separator: ":").trimmingCharacters(in: .whitespaces)
-        let times = timeRange.components(separatedBy: "–")
-
-        guard times.count == 2 else {
-            return false
-        }
-
-        let openingTimeString = times[0].trimmingCharacters(in: .whitespaces)
-        let closingTimeString = times[1].trimmingCharacters(in: .whitespaces)
-
-        let timeFormatter = DateFormatter()
-        timeFormatter.locale = Locale(identifier: "pt_BR")
-        timeFormatter.dateFormat = "HH:mm"
-
-        // 5. Pegamos a hora atual
         let now = Date()
         let calendar = Calendar.current
+        let today = formatter.string(from: now).lowercased()
+        let yesterdayDate = calendar.date(byAdding: .day, value: -1, to: now)!
+        let yesterday = formatter.string(from: yesterdayDate).lowercased()
+
         let currentHour = calendar.component(.hour, from: now)
         let currentMinute = calendar.component(.minute, from: now)
-
-        guard let openingTime = timeFormatter.date(from: openingTimeString),
-              let closingTime = timeFormatter.date(from: closingTimeString) else {
-            return false
-        }
-
-        // 6. Convertendo horários para comparações
-        let openHour = calendar.component(.hour, from: openingTime)
-        let openMinute = calendar.component(.minute, from: openingTime)
-        let closeHour = calendar.component(.hour, from: closingTime)
-        let closeMinute = calendar.component(.minute, from: closingTime)
-
         let currentTotalMinutes = currentHour * 60 + currentMinute
-        let openTotalMinutes = openHour * 60 + openMinute
-        let closeTotalMinutes = closeHour * 60 + closeMinute
 
-        if closeTotalMinutes < openTotalMinutes {
-            // Horário passa da meia-noite (ex: 21:00 – 04:00)
-            return currentTotalMinutes >= openTotalMinutes || currentTotalMinutes < closeTotalMinutes
-        } else {
-            return currentTotalMinutes >= openTotalMinutes && currentTotalMinutes < closeTotalMinutes
+        func parseTimeRange(for day: String) -> (open: Int, close: Int)? {
+            guard let dayLine = weekDays.first(where: { $0.lowercased().hasPrefix(day) }),
+                  !dayLine.lowercased().contains("fechado") else { return nil }
+
+            let timeRange = dayLine.components(separatedBy: ":").dropFirst().joined(separator: ":").trimmingCharacters(in: .whitespaces)
+            let times = timeRange.components(separatedBy: "–")
+            guard times.count == 2 else { return nil }
+
+            let openingTimeString = times[0].trimmingCharacters(in: .whitespaces)
+            let closingTimeString = times[1].trimmingCharacters(in: .whitespaces)
+
+            let timeFormatter = DateFormatter()
+            timeFormatter.locale = Locale(identifier: "pt_BR")
+            timeFormatter.dateFormat = "HH:mm"
+
+            guard let openingTime = timeFormatter.date(from: openingTimeString),
+                  let closingTime = timeFormatter.date(from: closingTimeString) else {
+                return nil
+            }
+
+            let openHour = calendar.component(.hour, from: openingTime)
+            let openMinute = calendar.component(.minute, from: openingTime)
+            let closeHour = calendar.component(.hour, from: closingTime)
+            let closeMinute = calendar.component(.minute, from: closingTime)
+
+            let openTotalMinutes = openHour * 60 + openMinute
+            let closeTotalMinutes = closeHour * 60 + closeMinute
+
+            return (open: openTotalMinutes, close: closeTotalMinutes)
         }
+
+        // 1️⃣ Verifica se ainda estamos no horário do dia anterior que passou da meia-noite
+        if let yesterdayRange = parseTimeRange(for: yesterday),
+           yesterdayRange.open > yesterdayRange.close { // horário cruza a meia-noite
+            if currentTotalMinutes < yesterdayRange.close {
+                return true
+            }
+        }
+
+        // 2️⃣ Verifica se hoje está dentro do horário de hoje
+        if let todayRange = parseTimeRange(for: today) {
+            if todayRange.open < todayRange.close {
+                // Horário normal (ex.: 08:00–18:00)
+                if currentTotalMinutes >= todayRange.open && currentTotalMinutes < todayRange.close {
+                    return true
+                }
+            } else {
+                // Horário passa da meia-noite (ex.: 21:00–04:00)
+                if currentTotalMinutes >= todayRange.open {
+                    // Hoje já passou da hora de abrir
+                    return true
+                }
+                // Senão ainda não abriu
+            }
+        }
+
+        return false
     }
 
 }

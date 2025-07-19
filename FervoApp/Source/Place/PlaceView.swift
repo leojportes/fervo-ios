@@ -10,12 +10,8 @@ import MapKit
 
 struct PlaceView: View {
     @State var location: LocationWithPosts
+    let userSession: UserSession
     @Environment(\.dismiss) private var dismiss
-
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 51.5588, longitude: -0.1208),
-        span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-    )
 
     @State private var selectedUserOfPost: UserModel?
 
@@ -41,20 +37,22 @@ struct PlaceView: View {
                         AsyncImage(url: URL(string: location.fixedLocation.photoURL)) { image in
                             image
                                 .resizable()
-                                .clipShape(Circle())
-                                .frame(width: 60, height: 60)
+                                .scaledToFill()
                         } placeholder: {
-                            Circle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(width: 60, height: 60)
+                            Color.gray.opacity(0.2)
                                 .shimmering()
                         }
+                        .frame(width: 60, height: 60)
+                        .clipShape(Circle())
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text(location.fixedLocation.name)
                                 .font(.title2)
                                 .bold()
                                 .foregroundColor(.white)
+                            Text(location.placeIsOpen ? "Aberto" : "Fechado")
+                                .font(.caption)
+                                .foregroundColor(location.placeIsOpen ? .green : .red)
 
                             Text(location.todayOpeningHours)
                                 .foregroundColor(.gray)
@@ -100,7 +98,7 @@ struct PlaceView: View {
                             Button(action: {
                                 UIApplication.shared.open(url)
                             }) {
-                                Label("Site", systemImage: "link")
+                                Image(systemName: "link")
                                     .padding(8)
                                     .background(Color.blue.opacity(0.7))
                                     .cornerRadius(10)
@@ -116,7 +114,17 @@ struct PlaceView: View {
                         Text("Confirmar Presença")
                             .frame(maxWidth: 160)
                             .padding()
-                            .background(LinearGradient(gradient: Gradient(colors: [Color.fvHeaderCardbackground, Color.blue]), startPoint: .leading, endPoint: .trailing))
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(
+                                        colors: [
+                                            Color.fvHeaderCardbackground,
+                                            Color.blue
+                                        ]
+                                    ),
+                                    startPoint: .leading, endPoint: .trailing
+                                )
+                            )
                             .cornerRadius(15)
                             .foregroundColor(.white)
                             .font(.subheadline)

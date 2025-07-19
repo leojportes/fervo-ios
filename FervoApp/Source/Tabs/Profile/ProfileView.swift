@@ -25,119 +25,147 @@ struct ProfileView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if userModel != nil {
-                HStack {
+                HStack(alignment: .center) {
                     Button(action: {
                         dismiss()
                     }) {
                         Image(systemName: "chevron.left")
                             .font(.title2)
                             .foregroundColor(.white)
-                            .padding(10)
+                            .padding(.vertical)
                     }
+
+                    Text("@\(userToShow?.username ?? "")")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .background(Color.FVColor.backgroundDark)
                     Spacer()
+                    if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
+                        Button(action: {
+                            print("Solicitações")
+                        }) {
+                            Text("Solicitações")
+                                .font(.subheadline)
+                                .foregroundColor(.blue.opacity(0.8))
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .background(Color.FVColor.backgroundDark)
+            } else {
+                HStack {
+                    Text("@\(userSession.currentUser?.username ?? "")")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                    Spacer()
+                    if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
+                        Button(action: {
+                            print("Solicitações")
+                        }) {
+                            Text("Solicitações")
+                                .font(.subheadline)
+                                .foregroundColor(.blue.opacity(0.8))
+                        }
+                    }
                 }
                 .padding(.horizontal)
                 .background(Color.FVColor.backgroundDark)
             }
-
-            HStack(alignment: .top) {
-                if let url = userToShow?.image?.photoURL {
-                    AsyncImage(url: URL(string: url)) { image in
-                        image
-                            .resizable()
-                            .clipShape(Circle())
-                            .frame(width: 60, height: 60)
-                    } placeholder: {
-                        Circle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 60, height: 60)
-                            .shimmering()
-                    }
-                }
-                if let user = userToShow {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(user.name)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Text("\(user.age) anos")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                }
-
-                Spacer()
-
-                if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
-                    Button(action: {
-                        print("Solicitações")
-                    }) {
-                        Text("Solicitações")
-                            .font(.subheadline)
-                            .foregroundColor(.blue.opacity(0.8))
-                    }
-                }
-            }
-            .padding(.horizontal)
-
-            // Connections and posts
-            HStack(spacing: 40) {
-                VStack {
-                    Text("24")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Text("conexões")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-
-                VStack {
-                    Text("\(viewModel.posts.count)")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    Text("Posts")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-            }
-            .padding(.horizontal)
-
-            // Tabs
-            HStack {
-                Button(action: {
-                    selectedTab = .feed
-                }) {
-                    Text("Feed")
-                        .font(.subheadline)
-                        .foregroundColor(selectedTab == .feed ? .white : .gray)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 20)
-                        .background(selectedTab == .feed ? Color.FVColor.headerCardbackgroundColor : Color.clear)
-                        .clipShape(Capsule())
-                }
-
-                Button(action: {
-                    selectedTab = .atividades
-                }) {
-                    Text("Atividades")
-                        .font(.subheadline)
-                        .foregroundColor(selectedTab == .atividades ? .white : .gray)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 20)
-                        .background(selectedTab == .atividades ? Color.FVColor.headerCardbackgroundColor : Color.clear)
-                        .clipShape(Capsule())
-                }
-            }
-            .padding(.horizontal)
-
-            Divider()
-                .background(Color.gray.opacity(0.3))
-                .padding(.horizontal)
-
             ScrollView {
-                switch selectedTab {
-                case .feed: makePostView()
-                case .atividades: makeAtivittyView()
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top) {
+                        if let url = userToShow?.image?.photoURL {
+                            AsyncImage(url: URL(string: url)) { image in
+                                image
+                                    .resizable()
+                                    .clipShape(Circle())
+                                    .frame(width: 60, height: 60)
+                            } placeholder: {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 60, height: 60)
+                                    .shimmering()
+                            }
+                        }
+                        if let user = userToShow {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(user.name)
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Text("\(user.age) anos")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.top)
+                    .padding(.horizontal)
+
+                    // Connections and posts
+                    HStack(spacing: 40) {
+                        VStack {
+                            Text("24")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Text("conexões")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+
+                        VStack {
+                            Text("\(viewModel.posts.count)")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            Text("Posts")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // Tabs
+                    HStack(alignment: .center) {
+                        Spacer()
+                        Button(action: {
+                            selectedTab = .feed
+                        }) {
+                            Text("Feed")
+                                .font(.subheadline)
+                                .foregroundColor(selectedTab == .feed ? .white : .gray)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 20)
+                                .background(selectedTab == .feed ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+
+                        Button(action: {
+                            selectedTab = .atividades
+                        }) {
+                            Text("Atividades")
+                                .font(.subheadline)
+                                .foregroundColor(selectedTab == .atividades ? .white : .gray)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 20)
+                                .background(selectedTab == .atividades ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+
+                    Divider()
+                        .background(Color.gray.opacity(0.3))
+                        .padding(.horizontal)
+
+
+                    switch selectedTab {
+                    case .feed: makePostView()
+                    case .atividades: makeAtivittyView()
+                    }
                 }
+
             }
         }
         .background(Color.fvBackground)

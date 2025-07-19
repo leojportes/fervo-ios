@@ -9,42 +9,9 @@ import SwiftUI
 
 struct DashboardTabView: View {
     @State private var selectedTab: Tab = .home
+    @State private var selectedUserModel: UserModel? = nil
     @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var loginViewModel: LoginViewModel
-
-    enum Tab: String, CaseIterable {
-        case home
-      //  case groups
-        case meetups
-        case profile
-
-        var title: String {
-            switch self {
-            case .home: return "Home"
-          //  case .groups: return "Grupos"
-            case .meetups: return "Rolês"
-            case .profile: return "Você"
-            }
-        }
-
-        var icon: String {
-            switch self {
-            case .home: return "house"
-          //  case .groups: return "person.3"
-            case .meetups: return "ticket"
-            case .profile: return "person"
-            }
-        }
-
-        var selectedIcon: String {
-            switch self {
-            case .home: return "house.fill"
-           // case .groups: return "person.3.fill"
-            case .meetups: return "ticket.fill"
-            case .profile: return "person.fill"
-            }
-        }
-    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -67,7 +34,7 @@ struct DashboardTabView: View {
         switch tab {
         case .home:
             return AnyView(
-                HomeView()
+                HomeView(selectedTab: $selectedTab, selectedUserModel: $selectedUserModel ) 
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
             )
@@ -107,5 +74,39 @@ extension DashboardTabView {
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    }
+}
+
+enum Tab: String, CaseIterable {
+    case home
+  //  case groups
+    case meetups
+    case profile
+
+    var title: String {
+        switch self {
+        case .home: return "Home"
+      //  case .groups: return "Grupos"
+        case .meetups: return "Rolês"
+        case .profile: return "Você"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .home: return "house"
+      //  case .groups: return "person.3"
+        case .meetups: return "ticket"
+        case .profile: return "person"
+        }
+    }
+
+    var selectedIcon: String {
+        switch self {
+        case .home: return "house.fill"
+       // case .groups: return "person.3.fill"
+        case .meetups: return "ticket.fill"
+        case .profile: return "person.fill"
+        }
     }
 }

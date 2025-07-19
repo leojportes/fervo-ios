@@ -18,7 +18,7 @@ public struct BottomSheetConfiguration {
     /// that the bottom sheet view can be draged over it's height.
     public var maxOverDrag: CGFloat = 30
     /// A view used a bottom sheet content background.
-    public var background = AnyView(RoundedRectangle(cornerRadius: 32).fill(Color.fvBackground))
+    public var background = AnyView(RoundedRectangle(cornerRadius: 32).fill(Color.fvCardBackgorund))
     /// A view that is used as the dim behind the bottom sheet content.
     public var dim = AnyView(Color.black.opacity(0.3))
     /// A view that is used as a drag indicator on top of the bottom sheet content.

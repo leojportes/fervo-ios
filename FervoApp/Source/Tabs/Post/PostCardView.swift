@@ -10,6 +10,7 @@ import SwiftUI
 struct PostCardView: View {
     let post: Post
     var onCommentTapped: (() -> Void)? = nil
+    var onPostTapped: (() -> Void)? = nil
 
     @State private var isLiked: Bool = false
     @State private var isShowingCommentsSheet: Bool = false
@@ -17,37 +18,41 @@ struct PostCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
-            HStack(spacing: 12) {
-                RemoteImage(url: URL(string: post.userPost.image?.photoURL ?? ""))
-                    .frame(width: 36, height: 36)
-                    .clipShape(Circle())
+            Button(action: {
+                onPostTapped?()
+            }) {
+                HStack(spacing: 12) {
+                    RemoteImage(url: URL(string: post.userPost.image?.photoURL ?? ""))
+                        .frame(width: 36, height: 36)
+                        .clipShape(Circle())
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(post.userPost.name)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(post.userPost.name)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
 
-                    Text(post.createdAt.timeAgoSinceDate)
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        Text(post.createdAt.timeAgoSinceDate)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+
+                    Spacer()
                 }
-
-                Spacer()
             }
 
-            // Post image
-            RemoteImage(url: URL(string: post.image.photoURL ?? ""))
-                .frame(maxWidth: .infinity, minHeight: 320, maxHeight: 320)
-                .clipped()
-                .cornerRadius(16)
-
+            Button(action: {
+                onPostTapped?()
+            }) {
+                RemoteImage(url: URL(string: post.image.photoURL ?? ""))
+                    .frame(maxWidth: .infinity, minHeight: 320, maxHeight: 320)
+                    .clipped()
+            }
             // Like info and button
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 16) {
                     Button(action: {
                         isLiked.toggle()
-                        // Aqui você pode chamar sua API para registrar o like.
                     }) {
                         HStack(spacing: 6) {
                             Image(systemName: post.hasMyLike ? "heart.fill" : "heart")

@@ -7,97 +7,159 @@
 
 import SwiftUI
 
-struct SearchView: View {
-    @EnvironmentObject var userSession: UserSession
-    @State private var isLoading = false
-    @State private var selectedTab: Tab = .people
+import Foundation
+import Combine
 
-    enum Tab: String, CaseIterable, Identifiable {
-        case people, posts, places
-        var id: String { rawValue }
-    }
+class SearchViewModel: ObservableObject {
+    @Published var peopleResults: [String] = []
+    @Published var placesResults: [String] = []
 
-    var body: some View {
-        VStack {
-            profileHeader()
+    private let allPeople = ["Leonardo Portes", "Leonardo da Rosa", "Leonardo Silva", "Leonardo Souza"]
+    private let allPlaces = ["Don't Tell Mama", "Bar do Zé", "Clube 21", "Floripa Pub"]
 
-            Divider()
-
-            ScrollView {
-                Group {
-                    switch selectedTab {
-                    case .people: SearchPeopleView()
-                    case .posts:  VStack{ }
-                        // SearchPostsView()
-                    case .places: VStack{ }
-                        //SearchPlacesView()
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .ignoresSafeArea(edges: .bottom)
-        .onAppear {
-            //  loadInitialData()
-        }
-
-    }
-
-    @ViewBuilder
-    private func profileHeader() -> some View {
-        HStack {
-            ForEach(Tab.allCases) { tab in
-                ProfileTabButton(
-                    title: tabTitle(for: tab),
-                    tab: tab,
-                    selectedTab: $selectedTab
-                )
-            }
-        }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(Capsule())
-    }
-
-    private func tabTitle(for tab: Tab) -> String {
-        switch tab {
-        case .people: return "Pessoas"
-        case .posts: return "Posts"
-        case .places: return "Lugares"
+    func searchPeople(query: String) {
+        if query.isEmpty {
+            peopleResults = []
+        } else {
+            peopleResults = allPeople.filter { $0.localizedCaseInsensitiveContains(query) }
         }
     }
 
-    private func loadInitialData() {
-        isLoading = true
-        // Simular carregamento:
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            isLoading = false
+    func searchPlaces(query: String) {
+        if query.isEmpty {
+            placesResults = []
+        } else {
+            placesResults = allPlaces.filter { $0.localizedCaseInsensitiveContains(query) }
         }
     }
 }
 
-struct ProfileTabButton: View {
-    let title: String
-    let tab: SearchView.Tab
-    @Binding var selectedTab: SearchView.Tab
+import SwiftUI
 
-    private var isSelected: Bool {
-        selectedTab == tab
+struct PeoplePlacesView: View {
+    @StateObject private var viewModel = SearchViewModel()
+    @State private var selectedTab: Tab = .pessoas
+    @State private var peopleQuery: String = ""
+    @State private var placesQuery: String = ""
+
+    enum Tab {
+        case pessoas
+        case lugares
     }
 
     var body: some View {
-        Button(action: {
-            selectedTab = tab
-        }) {
-            Text(title)
-                .fontWeight(.medium)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 16)
-                .background(isSelected ? Color.accentColor : Color.clear)
-                .foregroundColor(isSelected ? .white : .primary)
-                .clipShape(Capsule())
-                .animation(.easeInOut, value: selectedTab)
+        VStack(alignment: .leading, spacing: 16) {
+            // Header com título
+            HStack {
+                Text("Explorar")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .background(Color.FVColor.backgroundDark)
+
+            // Abas estilo Capsule
+            HStack {
+                Spacer()
+                Button(action: {
+                    selectedTab = .pessoas
+                }) {
+                    Text("Pessoas")
+                        .font(.subheadline)
+                        .foregroundColor(selectedTab == .pessoas ? .white : .gray)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 20)
+                        .background(selectedTab == .pessoas ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.2))
+                        .clipShape(Capsule())
+                }
+
+                Button(action: {
+                    selectedTab = .lugares
+                }) {
+                    Text("Lugares")
+                        .font(.subheadline)
+                        .foregroundColor(selectedTab == .lugares ? .white : .gray)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 20)
+                        .background(selectedTab == .lugares ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.2))
+                        .clipShape(Capsule())
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+
+            Divider()
+                .background(Color.gray.opacity(0.3))
+                .padding(.horizontal)
+
+            // Conteúdo
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if selectedTab == .pessoas {
+                        SearchSection(
+                            placeholder: "Buscar pessoas...",
+                            text: $peopleQuery,
+                            results: viewModel.peopleResults,
+                            onSearch: { viewModel.searchPeople(query: peopleQuery) }
+                        )
+                    } else {
+                        SearchSection(
+                            placeholder: "Buscar lugares...",
+                            text: $placesQuery,
+                            results: viewModel.placesResults,
+                            onSearch: { viewModel.searchPlaces(query: placesQuery) }
+                        )
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .background(Color.fvBackground)
+        .navigationBarBackButtonHidden()
+    }
+}
+
+struct SearchSection: View {
+    let placeholder: String
+    @Binding var text: String
+    let results: [String]
+    let onSearch: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            // Search field
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                TextField(placeholder, text: $text, onCommit: onSearch)
+                    .foregroundColor(.white)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+            }
+            .padding(12)
+            .background(Color.FVColor.headerCardbackgroundColor)
+            .cornerRadius(10)
+
+            // Lista de resultados
+            if results.isEmpty {
+                Text("Nenhum resultado encontrado")
+                    .foregroundColor(.gray)
+                    .font(.subheadline)
+                    .padding(.top, 50)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                ForEach(results, id: \.self) { item in
+                    Text(item)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.FVColor.headerCardbackgroundColor)
+                        .cornerRadius(8)
+                }
+            }
         }
     }
 }
