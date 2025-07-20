@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct PostCardView: View {
+    @StateObject private var viewModel = HomeViewModel()
+    @EnvironmentObject var userSession: UserSession
     let post: Post
     var onCommentTapped: (() -> Void)? = nil
+    var onLikeTapped: () -> Void
     var onPostTapped: (() -> Void)? = nil
 
     @State private var isLiked: Bool = false
@@ -52,13 +55,34 @@ struct PostCardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 16) {
                     Button(action: {
-                        isLiked.toggle()
+                        if !post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") {
+                            viewModel.likePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? "") { result in
+                                switch result {
+                                case .success(_):
+                                    isLiked = true
+                                    onLikeTapped()
+                                case .failure(_):
+                                    isLiked = false
+                                }
+                            }
+                        } else {
+                            viewModel.dislikePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? "") { result in
+                                switch result {
+                                case .success(_):
+                                    isLiked = false
+                                    onLikeTapped()
+                                case .failure(_):
+                                    isLiked = true
+                                }
+                            }
+                        }
+
                     }) {
                         HStack(spacing: 6) {
-                            Image(systemName: post.hasMyLike ? "heart.fill" : "heart")
-                                .foregroundColor(post.hasMyLike ? .red : .gray)
+                            Image(systemName: post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? "heart.fill" : "heart")
+                                .foregroundColor(post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? .red : .gray)
                                 .font(.system(size: 20))
-                            Text("\(post.likes)")
+                            Text("\(post.likedBy?.count ?? 0)")
                                 .foregroundColor(.gray)
                                 .font(.subheadline)
                         }
@@ -82,19 +106,25 @@ struct PostCardView: View {
 
                 HStack {
                     HStack(spacing: -6) {
-                        ForEach(post.likedBy.prefix(3), id: \.firebaseUid) { user in
-                            RemoteImage(url: URL(string: user.image?.photoURL ?? ""))
-                                .frame(width: 20, height: 20)
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                        if let likedUsers = post.likedUsers {
+                            ForEach(likedUsers.prefix(3), id: \.firebaseUid) { user in
+                                RemoteImage(url: URL(string: user.image?.photoURL ?? ""))
+                                    .frame(width: 20, height: 20)
+                                    .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                            }
                         }
+
                     }
-                    if post.likes > 0 {
-                        Text(post.likeDescription)
-                            .foregroundColor(.gray)
-                            .font(.caption)
+                    if let likedUsers = post.likedBy {
+                        if likedUsers.count > 0 {
+                            Text(post.likeDescription)
+                                .foregroundColor(.gray)
+                                .font(.caption)
+                        }
+                        Spacer()
                     }
-                    Spacer()
+
                 }
             }
             .padding(.top, 4)

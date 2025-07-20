@@ -191,10 +191,16 @@ private extension HomeView {
                     onCommentTapped: {
                         selectedPostForComments = post
                     },
+                    onLikeTapped: {
+                        DispatchQueue.main.async {
+                            viewModel.fetch()
+                        }
+                    },
                     onPostTapped: {
                         handlePostTap(post)
                     }
                 )
+                .environmentObject(userSession)
                 .padding(.horizontal)
                 .padding(.top, 12)
 

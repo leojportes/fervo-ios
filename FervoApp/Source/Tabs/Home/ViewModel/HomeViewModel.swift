@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import Firebase
 
 class HomeViewModel: ObservableObject {
     @Published var locationsWithPosts: [LocationWithPosts] = []
@@ -16,7 +17,7 @@ class HomeViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     func fetch() {
-        guard let url = URL(string: "http://localhost:8080/locations-with-posts") else {
+        guard let url = URL(string: "http://127.0.0.1:8080/locations-with-posts") else {
             self.errorMessage = "URL inválida"
             print("[❌] URL inválida")
             return
@@ -71,5 +72,73 @@ class HomeViewModel: ObservableObject {
                 self?.locationsWithPosts = locations
             }
             .store(in: &cancellables)
+    }
+
+    func likePost(postID: String, firebaseUID: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Auth.auth().currentUser?.getIDToken { token, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let token = token else {
+                completion(.failure(NSError(domain: "Token inválido", code: -1)))
+                return
+            }
+
+            self.performLikeDislikePost(postID: postID, token: token, isLike: true, completion: completion)
+        }
+    }
+
+    func dislikePost(postID: String, firebaseUID: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Auth.auth().currentUser?.getIDToken { token, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let token = token else {
+                completion(.failure(NSError(domain: "Token inválido", code: -1)))
+                return
+            }
+
+            self.performLikeDislikePost(postID: postID, token: token, isLike: false, completion: completion)
+        }
+    }
+
+    private func performLikeDislikePost(postID: String, token: String, isLike: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
+        // Define a URL diferente para like ou dislike
+        let endpoint = "http://127.0.0.1:8080/likes/\(postID)"
+
+        guard let url = URL(string: endpoint) else {
+            completion(.failure(NSError(domain: "URL inválida", code: -1)))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = isLike ? "POST" : "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpBody = Data() // corpo vazio
+
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "Resposta inválida", code: -2)))
+                return
+            }
+
+            if (200...299).contains(httpResponse.statusCode) {
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
+            } else {
+                completion(.failure(NSError(domain: "Erro ao \(isLike ? "curtir" : "descurtir"). Status: \(httpResponse.statusCode)", code: httpResponse.statusCode)))
+            }
+        }.resume()
     }
 }
