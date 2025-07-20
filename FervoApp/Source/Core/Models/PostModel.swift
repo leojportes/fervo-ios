@@ -38,7 +38,7 @@ struct Post: Identifiable, Codable, Equatable, Hashable {
         let firstTwoUsers = likedBy.prefix(2)
 
         // Criar a string com os nomes dos primeiros dois
-        let names = firstTwoUsers.map { $0.username }.joined(separator: ", ")
+        let names = firstTwoUsers.map { "@\($0.username)" }.joined(separator: ", ")
 
         // Se houver mais de dois usuários, adiciona "e outras pessoas"
         if likedBy.count > 2 {

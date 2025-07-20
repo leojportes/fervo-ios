@@ -24,9 +24,18 @@ struct PlaceView: View {
                     Image(systemName: "chevron.left")
                         .font(.title2)
                         .foregroundColor(.white)
-                        .padding(10)
+                        .padding([.horizontal, .top], 10)
                 }
+                Text(location.fixedLocation.name)
+                    .font(.title2)
+                    .bold()
+                    .foregroundColor(.white)
                 Spacer()
+                Button(action: {}) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.title3)
+                }
+                .foregroundColor(.white)
             }
             .padding(.horizontal)
             .background(Color.FVColor.backgroundDark)
@@ -46,26 +55,17 @@ struct PlaceView: View {
                         .clipShape(Circle())
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(location.fixedLocation.name)
-                                .font(.title2)
-                                .bold()
-                                .foregroundColor(.white)
+
                             Text(location.placeIsOpen ? "Aberto" : "Fechado")
                                 .font(.caption)
                                 .foregroundColor(location.placeIsOpen ? .green : .red)
 
                             Text(location.todayOpeningHours)
                                 .foregroundColor(.gray)
-                                .font(.subheadline)
+                                .font(.caption)
                         }
 
                         Spacer()
-
-                        Button(action: {}) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.title3)
-                        }
-                        .foregroundColor(.white)
                     }
 
                     // Prices and Details
@@ -202,7 +202,7 @@ struct PlaceView: View {
                         }
                     }
                 }
-                .padding()
+                .padding(.horizontal)
             }
         }
         .background(Color.FVColor.backgroundDark)

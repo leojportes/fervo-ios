@@ -27,7 +27,7 @@ struct PostCardView: View {
                         .clipShape(Circle())
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(post.userPost.name)
+                        Text("@\(post.userPost.username)")
                             .font(.subheadline)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -80,19 +80,22 @@ struct PostCardView: View {
                     Spacer()
                 }
 
-                HStack(spacing: -6) {
-                    ForEach(post.likedBy.prefix(3), id: \.firebaseUid) { user in
-                        RemoteImage(url: URL(string: user.image?.photoURL ?? ""))
-                            .frame(width: 20, height: 20)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                HStack {
+                    HStack(spacing: -6) {
+                        ForEach(post.likedBy.prefix(3), id: \.firebaseUid) { user in
+                            RemoteImage(url: URL(string: user.image?.photoURL ?? ""))
+                                .frame(width: 20, height: 20)
+                                .clipShape(Circle())
+                                .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                        }
                     }
-                    Text(post.likeDescription)
-                        .foregroundColor(.gray)
-                        .font(.caption)
+                    if post.likes > 0 {
+                        Text(post.likeDescription)
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                    }
                     Spacer()
                 }
-
             }
             .padding(.top, 4)
         }

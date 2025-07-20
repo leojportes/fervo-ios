@@ -66,46 +66,6 @@ class CommentsViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    private func performFetchComments(postID: String, token: String) {
-        guard let url = URL(string: "http://127.0.0.1:8080/posts-by-id/\(postID)") else { return }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("❌ Erro na requisição: \(error.localizedDescription)")
-                return
-            }
-
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📡 Status code: \(httpResponse.statusCode)")
-                print("📄 Content-Type: \(httpResponse.value(forHTTPHeaderField: "Content-Type") ?? "desconhecido")")
-            }
-
-            guard let data = data else { return }
-
-            do {
-
-                let formatter = DateFormatter()
-                formatter.locale = Locale(identifier: "en_US_POSIX")
-                formatter.timeZone = TimeZone(secondsFromGMT: 0)
-                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSZ"
-
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .formatted(formatter)
-
-                let post = try decoder.decode(Post.self, from: data)
-                DispatchQueue.main.async {
-                    self.comments = post.comments ?? []
-                }
-            } catch {
-                print("⚠️ Erro ao decodificar JSON:", error)
-            }
-        }.resume()
-    }
-
     func sendComment(postID: String, firebaseUID: String, text: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Auth.auth().currentUser?.getIDToken { token, error in
             if let error = error {

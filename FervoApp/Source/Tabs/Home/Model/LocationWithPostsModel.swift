@@ -34,18 +34,59 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "pt_BR")
         formatter.dateFormat = "EEEE"
-        let today = formatter.string(from: Date()).lowercased()
 
+        let calendar = Calendar.current
+        let now = Date()
+
+        // Nome do dia de hoje (ex: "domingo")
+        let today = formatter.string(from: now).lowercased()
+
+        // Nome do dia anterior (ex: "sábado")
+        let yesterday = formatter.string(from: calendar.date(byAdding: .day, value: -1, to: now)!).lowercased()
+
+        // Busca o horário de hoje
         if let todayLine = weekDays.first(where: { $0.lowercased().hasPrefix(today) }) {
-            // Separa apenas na primeira ocorrência de ":"
             if let range = todayLine.range(of: ":") {
                 let timePart = todayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
-                return timePart
+
+                if timePart.lowercased() != "fechado" {
+                    return timePart
+                }
+            }
+        }
+
+        // Se o horário de hoje é "Fechado", verifica se ontem passou da meia-noite
+        if let yesterdayLine = weekDays.first(where: { $0.lowercased().hasPrefix(yesterday) }) {
+            if let range = yesterdayLine.range(of: ":") {
+                let timePart = yesterdayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
+
+                // Exemplo: "21:00 – 04:00"
+                let parts = timePart.components(separatedBy: "–").map { $0.trimmingCharacters(in: .whitespaces) }
+                if parts.count == 2 {
+                    let openTime = parts[0]
+                    let closeTime = parts[1]
+
+                    // Se fechamento é antes da abertura, então atravessa a meia-noite
+                    if closeTime < openTime {
+                        let closeComponents = closeTime.components(separatedBy: ":").compactMap { Int($0) }
+                        if closeComponents.count == 2 {
+                            let closeHour = closeComponents[0]
+                            let closeMinute = closeComponents[1]
+
+                            let closingToday = calendar.date(bySettingHour: closeHour, minute: closeMinute, second: 0, of: now)!
+
+                            if now < closingToday {
+                                return timePart // Está aberto do dia anterior
+                            }
+                        }
+                    }
+                }
             }
         }
 
         return ""
     }
+
 
     var placeIsOpen: Bool {
         guard let weekDays = fixedLocation.weekdayText else { return false }
