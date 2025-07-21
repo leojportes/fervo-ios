@@ -22,7 +22,7 @@ struct HomeView: View {
     @EnvironmentObject var loginViewModel: LoginViewModel
 
     // MARK: - ViewModel
-    @StateObject private var viewModel = HomeViewModel()
+    @EnvironmentObject var viewModel: HomeViewModel
 
     // MARK: - State
     @State private var selectedPostForComments: Post?
@@ -36,18 +36,24 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 16) {
                 headerView
                 ScrollView {
-                    sectionTitle
-                    searchTappedView
-                    Divider()
-                        .background(Color.gray.opacity(0.2))
-                        .padding(.horizontal)
-                        .padding(.bottom)
-
+                    VStack {
+                        sectionTitle
+                        searchTappedView
+                        Divider()
+                            .background(Color.gray.opacity(0.2))
+                            .padding(.horizontal)
+                            .padding(.bottom)
+                    }
+                    .background(Color.FVColor.backgroundDark)
+                    
                     postsList
+                }
+                .refreshable {
+                    viewModel.fetch()
                 }
                 .background(Color.FVColor.backgroundDark)
                 .coordinateSpace(name: "scroll")
-                .bottomSheet(item: $selectedPostForComments) { post in
+                .sheet(item: $selectedPostForComments) { post in
                     CommentsBottomSheetView(
                         userSession: userSession,
                         postId: post.id,
@@ -71,7 +77,11 @@ struct HomeView: View {
             .background(Color.FVColor.backgroundDark)
             .navigationBarBackButtonHidden()
             .onAppear {
-                viewModel.fetch()
+                DispatchQueue.main.async {
+                    if viewModel.locationsWithPosts.isEmpty {
+                        viewModel.fetch()
+                    }
+                }
                 customizeNavigationBar()
             }
         }
@@ -192,9 +202,7 @@ private extension HomeView {
                         selectedPostForComments = post
                     },
                     onLikeTapped: {
-                        DispatchQueue.main.async {
-                            viewModel.fetch()
-                        }
+                        viewModel.fetch()
                     },
                     onPostTapped: {
                         handlePostTap(post)
@@ -203,6 +211,7 @@ private extension HomeView {
                 .environmentObject(userSession)
                 .padding(.horizontal)
                 .padding(.top, 12)
+                .blurLoading(viewModel.isLoading)
 
                 if isLast {
                     Button("Ver mais em \(location.fixedLocation.name)") {

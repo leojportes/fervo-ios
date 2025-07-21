@@ -17,7 +17,7 @@ class HomeViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     func fetch() {
-        guard let url = URL(string: "http://127.0.0.1:8080/locations-with-posts") else {
+        guard let url = URL(string: "\(baseIPForTest)/locations-with-posts") else {
             self.errorMessage = "URL inválida"
             print("[❌] URL inválida")
             return
@@ -108,7 +108,7 @@ class HomeViewModel: ObservableObject {
 
     private func performLikeDislikePost(postID: String, token: String, isLike: Bool, completion: @escaping (Result<Void, Error>) -> Void) {
         // Define a URL diferente para like ou dislike
-        let endpoint = "http://127.0.0.1:8080/likes/\(postID)"
+        let endpoint = "\(baseIPForTest)/likes/\(postID)"
 
         guard let url = URL(string: endpoint) else {
             completion(.failure(NSError(domain: "URL inválida", code: -1)))

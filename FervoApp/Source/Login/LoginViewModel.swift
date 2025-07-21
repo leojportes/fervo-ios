@@ -86,7 +86,7 @@ final class LoginViewModel: ObservableObject {
 
     // MARK: - Fetch User
     private func fetchUserData(firebaseUID: String, completion: @escaping (Result<UserModel, Error>) -> Void) {
-        guard let url = URL(string: "http://\(baseIPForTest):8080/users/firebase/\(firebaseUID)") else {
+        guard let url = URL(string: "\(baseIPForTest)/users/firebase/\(firebaseUID)") else {
             completion(.failure(NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "URL inválida."])))
             return
         }
@@ -144,4 +144,4 @@ final class LoginViewModel: ObservableObject {
     }
 }
 
-let baseIPForTest = "localhost"
+let baseIPForTest = "https://57ad2e782465.ngrok-free.app"

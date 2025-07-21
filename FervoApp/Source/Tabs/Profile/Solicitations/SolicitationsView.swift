@@ -1,0 +1,121 @@
+//
+//  SolicitationsView.swift
+//  FervoApp
+//
+//  Created by Leonardo Jose De Oliveira Portes on 20/07/25.
+//
+
+import SwiftUI
+
+struct SolicitationsView: View {
+    @StateObject private var viewModel = SolicitationsViewModel()
+    let userSession: UserSession
+    @Environment(\.dismiss) private var dismiss
+    var onGoToUserPage: ((UserModel) -> Void)?
+
+    var body: some View {
+        VStack {
+            Rectangle()
+                .frame(width: 30, height: 4)
+                .foregroundColor(Color(.systemGray5))
+                .clipShape(Capsule())
+                .padding(.bottom, 25)
+                .padding(.top, 12)
+
+            ScrollView {
+                VStack(alignment: .leading) {
+                    if viewModel.pendingConnections.isEmpty {
+                        Text("Não há nenhuma\nsolicitação de conexão.")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .padding(.top, 200)
+                            .padding(.bottom, 60)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .foregroundStyle(.gray)
+                    } else {
+                        ForEach(viewModel.pendingConnections, id: \.id) { connections in
+                            HStack(alignment: .top, spacing: 12) {
+                                Button(action: {
+                                    dismiss()
+                                    onGoToUserPage?(connections.from)
+                                }) {
+                                    HStack {
+                                        AsyncImage(url: URL(string: connections.from.image?.photoURL ?? "")) { image in
+                                            image.resizable()
+                                                .scaledToFill()
+                                                .frame(width: 35, height: 35)
+                                                .clipShape(Circle())
+                                                .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+                                                .shadow(radius: 2)
+                                        } placeholder: {
+                                            Color.gray.opacity(0.3).frame(width: 40, height: 40).clipShape(Circle())
+                                        }
+
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(connections.from.name)
+                                                .font(.subheadline)
+                                                .foregroundColor(.white)
+                                            HStack {
+                                                Text("@\(connections.from.username)")
+                                                    .font(.caption.bold())
+                                                    .foregroundColor(.white)
+
+                                                Text(connections.createdAt.timeAgoSinceDate)
+                                                    .font(.caption)
+                                                    .foregroundColor(.gray)
+
+                                                Spacer()
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Spacer()
+
+                                HStack(spacing: 6) {
+                                    Button(action: {
+                                        viewModel.acceptConnection(connectionID: connections.id) { result in
+                                            
+                                        }
+                                    }) {
+                                        Text("Confirmar")
+                                            .font(.caption)
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 8)
+                                            .background(Color.blue.opacity(0.8))
+                                            .cornerRadius(8)
+                                    }
+                                    Button(action: {
+                                        viewModel.cancelConnection(connectionID: connections.id) { result in
+                                            
+                                        }
+                                    }) {
+                                        Image(systemName: "xmark")
+                                            .font(.system(size: 14, weight: .bold))
+                                            .foregroundColor(.white)
+                                            .padding(8)
+                                            .background(Color.clear)
+                                            .clipShape(Circle())
+                                    }
+                                }
+                                .padding(.leading, 12)
+                            }
+                            .padding(.leading, 16)
+                            .padding(.top, 10)
+                        }
+                    }
+                }
+            }
+            .padding(.bottom, 50)
+
+            Spacer()
+
+        }
+        .onAppear {
+            viewModel.fetchPendingConnections()
+        }
+        .background(Color.fvCardBackgorund)
+    }
+}

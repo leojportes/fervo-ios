@@ -5,8 +5,14 @@
 //  Created by Leonardo Jose De Oliveira Portes on 20/05/25.
 //
 
+import Foundation
 
-struct UserModel: Codable, Equatable, Hashable {
+
+struct UserModel: Codable, Equatable, Hashable, Identifiable {
+    var id: String {
+        return firebaseUid
+    }
+
     let firebaseUid: String
     let email: String
     let username: String
@@ -24,9 +30,13 @@ struct UserModel: Codable, Equatable, Hashable {
     }
 }
 
-struct ImageModel: Codable, Equatable, Hashable {
+struct ImageModel: Codable, Equatable, Hashable, Identifiable {
     let imageId: String?
     let photoURL: String?
+
+    var id: String { // id computado para Identifiable
+        return imageId ?? UUID().uuidString
+    }
 
     enum CodingKeys: String, CodingKey {
         case photoURL = "photo_url"

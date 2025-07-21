@@ -41,10 +41,11 @@ struct RootView: View {
     @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var loginViewModel: LoginViewModel
 
+    @StateObject private var homeViewModel = HomeViewModel()  // ADICIONE AQUI
+
     var body: some View {
         Group {
             if loginViewModel.isLoading {
-                // 👇 Pode ser um splash screen ou só um ProgressView
                 ProgressView("Verificando autenticação...")
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -53,6 +54,7 @@ struct RootView: View {
                 DashboardTabView()
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
+                    .environmentObject(homeViewModel) // INJETANDO AQUI
             } else {
                 LoginView()
                     .environmentObject(userSession)

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PostCardView: View {
-    @StateObject private var viewModel = HomeViewModel()
+    @EnvironmentObject var viewModel: HomeViewModel
     @EnvironmentObject var userSession: UserSession
     let post: Post
     var onCommentTapped: (() -> Void)? = nil
@@ -17,6 +17,7 @@ struct PostCardView: View {
 
     @State private var isLiked: Bool = false
     @State private var isShowingCommentsSheet: Bool = false
+    @State private var isPerformingLike: Bool = false  // loading local do like
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -55,8 +56,12 @@ struct PostCardView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 16) {
                     Button(action: {
+                        guard !isPerformingLike else { return }
+                        isPerformingLike = true
+
                         if !post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") {
                             viewModel.likePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? "") { result in
+                                isPerformingLike = false
                                 switch result {
                                 case .success(_):
                                     isLiked = true
@@ -67,6 +72,7 @@ struct PostCardView: View {
                             }
                         } else {
                             viewModel.dislikePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? "") { result in
+                                isPerformingLike = false
                                 switch result {
                                 case .success(_):
                                     isLiked = false
@@ -79,22 +85,35 @@ struct PostCardView: View {
 
                     }) {
                         HStack(spacing: 6) {
-                            Image(systemName: post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? "heart.fill" : "heart")
-                                .foregroundColor(post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? .red : .gray)
-                                .font(.system(size: 20))
+                            if isPerformingLike || viewModel.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                                    .scaleEffect(0.7)
+                            } else {
+                                Image(systemName: post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? "heart.fill" : "heart")
+                                    .foregroundColor(post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? .red : .gray)
+                                    .font(.system(size: 20))
+                            }
                             Text("\(post.likedBy?.count ?? 0)")
                                 .foregroundColor(.gray)
                                 .font(.subheadline)
                         }
                     }
+                    .disabled(isPerformingLike || viewModel.isLoading)
 
                     Button(action: {
                         onCommentTapped?()
                     }) {
                         HStack(spacing: 6) {
-                            Image(systemName: "bubble.right")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 18))
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .gray))
+                                    .scaleEffect(0.7)
+                            } else {
+                                Image(systemName: "bubble.right")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 18))
+                            }
                             Text("\(post.comments?.count ?? 0)")
                                 .foregroundColor(.gray)
                                 .font(.subheadline)
@@ -114,7 +133,6 @@ struct PostCardView: View {
                                     .overlay(Circle().stroke(Color.white, lineWidth: 1))
                             }
                         }
-
                     }
                     if let likedUsers = post.likedBy {
                         if likedUsers.count > 0 {
@@ -124,7 +142,6 @@ struct PostCardView: View {
                         }
                         Spacer()
                     }
-
                 }
             }
             .padding(.top, 4)

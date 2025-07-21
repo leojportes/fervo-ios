@@ -1,14 +1,14 @@
 //
 //  CommentsBottomSheetView.swift
-//  FervoApp
+//  
 //
-//  Created by Leonardo Jose De Oliveira Portes on 25/05/25.
+//  Created by Leonardo Jose De Oliveira Portes on 20/07/25.
 //
 
-import SwiftUI
 
 struct CommentsBottomSheetView: View {
     @StateObject private var viewModel = CommentsViewModel()
+    @ObservedObject private var keyboard = KeyboardResponder()
     let userSession: UserSession
     var postId: String
     @State private var newComment: String = ""
@@ -17,13 +17,6 @@ struct CommentsBottomSheetView: View {
 
     var body: some View {
         VStack {
-            Rectangle()
-                .frame(width: 30, height: 4)
-                .foregroundColor(Color(.systemGray5))
-                .clipShape(Capsule())
-                .padding(.bottom, 25)
-                .padding(.top, 12)
-
             ScrollView {
                 VStack(alignment: .leading) {
                     if viewModel.comments.isEmpty {
@@ -117,6 +110,9 @@ struct CommentsBottomSheetView: View {
             }
             .padding()
         }
+        .frame(height: 400)
+        .padding(.bottom, keyboard.currentHeight) // 👈 Ajusta ao teclado
+        .animation(.easeOut(duration: 0.25), value: keyboard.currentHeight)
         .onAppear {
             viewModel.fetchComments(for: postId)
         }

@@ -10,8 +10,12 @@ struct ProfileView: View {
     @EnvironmentObject var userSession: UserSession
     @StateObject private var viewModel = ProfileViewModel()
     @State private var selectedTab: ProfileTab = .feed
+    @State private var isPresentSolicitations = false
     let userModel: UserModel?
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedUserFromSolicitations: UserModel? = nil
+    @State private var selectedPostIndex: Int = 0
+    @State private var isShowingPostCarousel = false
 
     enum ProfileTab {
         case feed
@@ -42,7 +46,7 @@ struct ProfileView: View {
                     Spacer()
                     if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
                         Button(action: {
-                            print("Solicitações")
+                            isPresentSolicitations = true
                         }) {
                             Text("Solicitações")
                                 .font(.subheadline)
@@ -60,7 +64,7 @@ struct ProfileView: View {
                     Spacer()
                     if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
                         Button(action: {
-                            print("Solicitações")
+                            isPresentSolicitations = true
                         }) {
                             Text("Solicitações")
                                 .font(.subheadline)
@@ -106,10 +110,10 @@ struct ProfileView: View {
                     // Connections and posts
                     HStack(spacing: 40) {
                         VStack {
-                            Text("24")
+                            Text("\(viewModel.connectedUsers.count)")
                                 .font(.headline)
                                 .foregroundColor(.white)
-                            Text("conexões")
+                            Text(viewModel.connectedUsers.count == 1 ? "Conexão" : "Conexões")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
@@ -122,60 +126,138 @@ struct ProfileView: View {
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
-                    }
-                    .padding(.horizontal)
-
-                    // Tabs
-                    HStack(alignment: .center) {
-                        Spacer()
-                        Button(action: {
-                            selectedTab = .feed
-                        }) {
-                            Text("Feed")
-                                .font(.subheadline)
-                                .foregroundColor(selectedTab == .feed ? .white : .gray)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 20)
-                                .background(selectedTab == .feed ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.1))
-                                .clipShape(Capsule())
-                        }
-
-                        Button(action: {
-                            selectedTab = .atividades
-                        }) {
-                            Text("Atividades")
-                                .font(.subheadline)
-                                .foregroundColor(selectedTab == .atividades ? .white : .gray)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 20)
-                                .background(selectedTab == .atividades ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.1))
-                                .clipShape(Capsule())
-                        }
                         Spacer()
                     }
                     .padding(.horizontal)
 
+                    if viewModel.hasConnection || userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
+                        // Tabs
+                        HStack(alignment: .center) {
+                            Spacer()
+                            Button(action: {
+                                selectedTab = .feed
+                            }) {
+                                Text("Feed")
+                                    .font(.subheadline)
+                                    .foregroundColor(selectedTab == .feed ? .white : .gray)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 20)
+                                    .background(selectedTab == .feed ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.1))
+                                    .clipShape(Capsule())
+                            }
+
+                            Button(action: {
+                                selectedTab = .atividades
+                            }) {
+                                Text("Atividades")
+                                    .font(.subheadline)
+                                    .foregroundColor(selectedTab == .atividades ? .white : .gray)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 20)
+                                    .background(selectedTab == .atividades ? Color.FVColor.headerCardbackgroundColor : Color.gray.opacity(0.1))
+                                    .clipShape(Capsule())
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                    }
+                    
                     Divider()
                         .background(Color.gray.opacity(0.3))
                         .padding(.horizontal)
 
 
                     switch selectedTab {
-                    case .feed: makePostView()
-                    case .atividades: makeAtivittyView()
+                    case .feed:
+                        if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid || viewModel.hasConnection {
+                            makePostView()
+                        } else {
+                            conditionalContent()
+                        }
+                    case .atividades:
+                        if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid || viewModel.hasConnection {
+                            makeAtivittyView()
+                        }
                     }
                 }
-
             }
+        }
+        .sheet(item: $selectedUserFromSolicitations) { user in
+            ProfileView(userModel: user)
+        }
+        .sheet(isPresented: $isPresentSolicitations) {
+            SolicitationsView(userSession: userSession, onGoToUserPage: { user in
+                selectedUserFromSolicitations = user
+            })
         }
         .background(Color.fvBackground)
         .onAppear {
-            if let user = userToShow {
-                viewModel.fetchUserPosts(firebaseUID: user.firebaseUid)
-                customizeNavigationBar()
-            }
+            onAppearMethods()
         }
         .navigationBarBackButtonHidden()
+    }
+
+
+    private func conditionalContent() -> some View {
+        if viewModel.hasPendingConnections {
+            AnyView(
+                HStack {
+                    if let username = userToShow?.username {
+                        Text("\(username) quer se conectar com você")
+                            .foregroundColor(.gray)
+                            .font(.subheadline)
+                            .padding()
+                    }
+                    Spacer()
+                    Button(action: {
+                        if let id = viewModel.pendingConnectionId {
+                            viewModel.acceptConnection(connectionID: id) { result in
+                                switch result {
+                                case .success(_):
+                                    onAppearMethods()
+                                case .failure(_):
+                                    print("")
+                                }
+                            }
+                        }
+                    }) {
+                        Text("Confirmar")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.blue.opacity(0.8))
+                            .cornerRadius(8)
+                    }
+                    .padding()
+                })
+        } else {
+            AnyView(
+                VStack {
+                    Text("Esse perfil é privado.")
+                        .foregroundColor(.gray)
+                        .font(.subheadline)
+                        .padding()
+                    Spacer()
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            )
+        }
+    }
+
+    private func onAppearMethods() {
+        if let userIdToCheck = userModel?.firebaseUid {
+            viewModel.fetchPendingConnections(userIdToCheck: userIdToCheck)
+            viewModel.checkConnection(with: userIdToCheck) { result in
+                if result {
+                    print("tem conexão? \(result)")
+                }
+            }
+        }
+        if let user = userToShow {
+            viewModel.fetchUserPosts(firebaseUID: user.firebaseUid)
+            viewModel.fetchConnectedUsers()
+        }
+        customizeNavigationBar()
     }
 
     private func customizeNavigationBar() {
@@ -188,33 +270,54 @@ struct ProfileView: View {
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
 
+    @ViewBuilder
     func makePostView() -> some View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
 
-        return LazyVGrid(columns: columns, spacing: 12) {
-            ForEach(viewModel.posts) { post in
-                GeometryReader { geometry in
-                    AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.2))
-                            .shimmering()
+        if viewModel.posts.isEmpty {
+            emptyView(text: "Nenhuma postagem para mostrar.")
+        } else {
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) { index, post in
+                    GeometryReader { geometry in
+                        AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.2))
+                                .shimmering()
+                        }
+                        .frame(width: geometry.size.width, height: 140)
+                        .clipped()
+                        .contentShape(Rectangle()) // Para o clique pegar a área toda
+                        .onTapGesture {
+                            print("Post clicado index: \(index), total posts: \(viewModel.posts.count)")
+                            selectedPostIndex = index
+                            isShowingPostCarousel = true
+                        }
                     }
-                    .frame(width: geometry.size.width, height: 140)
-                    .clipped()
+                    .aspectRatio(1, contentMode: .fit)
                 }
-                .aspectRatio(1, contentMode: .fit)
+            }
+            .padding(.horizontal)
+            .fullScreenCover(isPresented: $isShowingPostCarousel) {
+                PostCarouselView(posts: viewModel.posts, selectedIndex: $selectedPostIndex) {
+                    isShowingPostCarousel = false
+                }
+                .environmentObject(userSession)
             }
         }
-        .padding(.horizontal)
     }
 
     func makeAtivittyView() -> some View {
+        emptyView(text: "Nenhuma atividade no momento")
+    }
+
+    func emptyView(text: String) -> some View {
         VStack {
-            Text("Nenhuma atividade no momento")
+            Text(text)
                 .foregroundColor(.gray)
                 .font(.subheadline)
                 .padding()
@@ -231,3 +334,81 @@ struct ProfileView: View {
 //            .environmentObject(UserSession()) // Adiciona o ambiente necessário
 //    }
 //}
+
+struct PostCarouselView: View {
+    let posts: [Post]
+    @EnvironmentObject var userSession: UserSession
+    @Binding var selectedIndex: Int
+    var onDismiss: () -> Void
+
+    var body: some View {
+        VStack {
+            HStack {
+                Button(action: {
+                    onDismiss()
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding([.horizontal, .top], 10)
+                }
+                .frame(width: 30)
+
+                Spacer()
+                VStack(alignment: .center) {
+                    Text("Posts")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.white)
+                    Text("@\(posts.first?.userPost.username ?? "")")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                }
+                Rectangle()
+                    .foregroundColor(Color.fvBackground)
+                    .frame(width: 30, height: 10)
+
+                Spacer()
+            }
+            .background(Color.fvBackground)
+            ScrollViewReader { proxy in
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(posts.enumerated()), id: \.element.id) { index, post in
+                            VStack {
+                                PostCardView(
+                                    post: post,
+                                    onCommentTapped: {
+                                        //selectedPostForComments = post
+                                    },
+                                    onLikeTapped: {
+                                        // viewModel.fetch()
+                                    },
+                                    onPostTapped: {
+                                        //handlePostTap(post)
+                                    }
+                                )
+                                .environmentObject(userSession)
+                                .padding(.horizontal)
+                                .padding(.top, 12)
+                            }
+                            .padding(.top, 12)
+                            .padding(.bottom, index == posts.count - 1 ? 150 : 0)
+                            .clipped()
+                            .id(index)
+                            .background(Color.black)
+                        }
+                    }
+
+                }
+                .background(Color.fvBackground)
+                .ignoresSafeArea()
+                .onAppear {
+                    proxy.scrollTo(selectedIndex, anchor: .bottom)
+                }
+            }
+        }
+        .background(Color.fvBackground)
+    }
+}
+
+

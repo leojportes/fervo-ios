@@ -14,7 +14,7 @@ class CommentsViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     func fetchComments(for postID: String) {
-        guard let url = URL(string: "http://127.0.0.1:8080/posts-by-id/\(postID)") else {
+        guard let url = URL(string: "\(baseIPForTest)/posts-by-id/\(postID)") else {
             print("[❌] URL inválida")
             return
         }
@@ -83,7 +83,7 @@ class CommentsViewModel: ObservableObject {
     }
 
     private func performSendComment(postID: String, firebaseUID: String, text: String, token: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let url = URL(string: "http://localhost:8080/comments") else {
+        guard let url = URL(string: "\(baseIPForTest)/comments") else {
             completion(.failure(NSError(domain: "URL inválida", code: -1)))
             return
         }

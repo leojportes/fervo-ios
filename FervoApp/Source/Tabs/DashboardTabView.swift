@@ -12,6 +12,7 @@ struct DashboardTabView: View {
     @State private var selectedUserModel: UserModel? = nil
     @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var loginViewModel: LoginViewModel
+    @EnvironmentObject var homeViewModel: HomeViewModel
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -37,6 +38,7 @@ struct DashboardTabView: View {
                 HomeView(selectedTab: $selectedTab, selectedUserModel: $selectedUserModel ) 
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
+                    .environmentObject(homeViewModel)
             )
             //  case .groups:
             //      return AnyView(VStack{ })
