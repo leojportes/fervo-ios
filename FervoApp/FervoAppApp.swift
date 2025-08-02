@@ -56,7 +56,7 @@ struct RootView: View {
                     .environmentObject(loginViewModel)
                     .environmentObject(homeViewModel) // INJETANDO AQUI
             } else {
-                LoginView()
+                LoginViewV2()
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
             }
