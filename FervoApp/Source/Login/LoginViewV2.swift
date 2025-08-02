@@ -8,8 +8,21 @@ import SwiftUI
 
 struct LoginViewV2: View {
     var body: some View{
-        VStack{
-            Text("Seja Bem-vindo")
+        ZStack{
+            LinearGradient(
+                gradient: Gradient(colors: [.fvCardBackgorund, .fvBackground]), startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+            .edgesIgnoringSafeArea(.all)  //Cor de fundo
+        
+            VStack{
+                Text("Bem-vindo(a)")
+                    .foregroundStyle(.white)
+                    .font(.title)
+                    .fontWeight(.semibold)
+                    
+            }
+            .padding(.top, -250)
+            
         }
     }
 }
