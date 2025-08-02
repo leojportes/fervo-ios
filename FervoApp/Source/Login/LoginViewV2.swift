@@ -8,7 +8,9 @@ import SwiftUI
 
 struct LoginViewV2: View {
     var body: some View{
-        Text("Hello, world")
+        VStack{
+            Text("Seja Bem-vindo")
+        }
     }
 }
 
