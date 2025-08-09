@@ -8,13 +8,13 @@ import SwiftUI
 
 struct LoginViewV2: View {
     
-    @State private var Email: String = ""
+    @State private var email: String = ""
     @State private var password: String = ""
     @State private var rememberMe = false
     
     var body: some View{
         ZStack{
-            LinearGradient(             //backGroundColor Set
+            LinearGradient(
                 gradient: Gradient(colors: [.fvCardBackgorund, .fvHeaderCardbackground]), startPoint: .topLeading, endPoint: .bottomTrailing
             )
             .edgesIgnoringSafeArea(.all)
@@ -28,7 +28,7 @@ struct LoginViewV2: View {
                     .padding(.bottom, 40)
                 
                 
-                VStack(){               //area de login
+                VStack{
                     Text("Email:")
                         .font(.title2)
                         .foregroundStyle(.white)
@@ -41,7 +41,7 @@ struct LoginViewV2: View {
                                 .fill(Color.white.opacity(0.2))
                                 .frame(height: 45)
                             
-                            TextField("", text: $Email, prompt:   Text("Digite aqui seu Email").foregroundStyle(.gray))
+                            TextField("", text: $email, prompt:   Text("Digite aqui seu Email").foregroundStyle(.gray))
                                 .padding(.leading, 10)
                                 .font(.system(size: 20))
                                 .foregroundStyle(.white)
@@ -101,8 +101,8 @@ struct LoginViewV2: View {
                         .toggleStyle(CheckboxTogglestyle())
                         
                         
-                        Button{                 //Forguet password Button
-                            //Button Configuration
+                        Button{
+                            
                         }label: {
                             Text("Esqueceu sua senha?")
                                 .underline()
@@ -113,9 +113,9 @@ struct LoginViewV2: View {
                     }
                     .padding(.top, 10)
                     
-                    VStack{             //Enter button
+                    VStack{
                         Button {
-                            // ButtonConfig
+                            
                         } label: {
                             Text("Entrar")
                         }
@@ -133,7 +133,7 @@ struct LoginViewV2: View {
                         Text("Ainda não tem uma conta?")
                             .foregroundStyle(.white)
                         Button {
-                            // ButtonConfig
+                        
                         } label: {
                             Text("Cadastrar-se")
                                 .underline()
