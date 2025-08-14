@@ -65,7 +65,10 @@ struct HomeView: View {
                     )
                 }
                 .sheet(isPresented: $isSearchViewPresented) {
-                    PeoplePlacesView()
+                    PeoplePlacesView { location in
+                        self.selectedLocation = LocationWithPosts(fixedLocation: location, posts: [])
+                        self.isSearchViewPresented = false
+                    }
                 }
                 .navigationDestination(item: $selectedLocation) { location in
                     PlaceView(location: location, userSession: userSession)
