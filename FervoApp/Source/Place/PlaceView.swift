@@ -12,6 +12,7 @@ struct PlaceView: View {
     @State var location: LocationWithPosts
     let userSession: UserSession
     @Environment(\.dismiss) private var dismiss
+    @State private var showOpeningHours = false
 
     @State private var selectedUserOfPost: UserModel?
 
@@ -60,9 +61,20 @@ struct PlaceView: View {
                                 .font(.caption)
                                 .foregroundColor(location.placeIsOpen ? .green : .red)
 
-                            Text(location.todayOpeningHours)
-                                .foregroundColor(.gray)
-                                .font(.caption)
+                            if location.fixedLocation.weekdayText != nil {
+                                Button {
+                                    withAnimation { showOpeningHours = true }
+                                } label: {
+                                    HStack {
+                                        Text(location.todayOpeningHours)
+                                            .foregroundColor(.gray)
+                                            .font(.caption)
+                                        Image(systemName: "chevron.right")
+                                            .frame(width: 12, height: 12)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                            }
                         }
 
                         Spacer()
@@ -86,12 +98,14 @@ struct PlaceView: View {
                                 .foregroundColor(.white)
                         }
 
-                        Label("236 pessoas agora", systemImage: "person.2.fill")
-                            .padding(8)
-                            .background(Color.fvHeaderCardbackground)
-                            .cornerRadius(10)
-                            .font(.caption)
-                            .foregroundColor(.white)
+                        if location.placeIsOpen {
+                            Label("236 pessoas agora", systemImage: "person.2.fill")
+                                .padding(8)
+                                .background(Color.fvHeaderCardbackground)
+                                .cornerRadius(10)
+                                .font(.caption)
+                                .foregroundColor(.white)
+                        }
 
                         if let website = location.fixedLocation.website,
                            let url = URL(string: website) {
@@ -109,25 +123,26 @@ struct PlaceView: View {
                         }
                     }
 
-                    // Confirm Button
-                    Button(action: {}) {
-                        Text("Confirmar Presença")
-                            .frame(maxWidth: 160)
-                            .padding()
-                            .background(
-                                LinearGradient(
-                                    gradient: Gradient(
-                                        colors: [
-                                            Color.fvHeaderCardbackground,
-                                            Color.blue
-                                        ]
-                                    ),
-                                    startPoint: .leading, endPoint: .trailing
+                    if location.placeIsOpen {
+                        Button(action: {}) {
+                            Text("Confirmar Presença")
+                                .frame(maxWidth: 160)
+                                .padding()
+                                .background(
+                                    LinearGradient(
+                                        gradient: Gradient(
+                                            colors: [
+                                                Color.fvHeaderCardbackground,
+                                                Color.blue
+                                            ]
+                                        ),
+                                        startPoint: .leading, endPoint: .trailing
+                                    )
                                 )
-                            )
-                            .cornerRadius(15)
-                            .foregroundColor(.white)
-                            .font(.subheadline)
+                                .cornerRadius(15)
+                                .foregroundColor(.white)
+                                .font(.subheadline)
+                        }
                     }
 
     //                // Participants
@@ -161,11 +176,13 @@ struct PlaceView: View {
                         .frame(height: 200)
                         .cornerRadius(15)
 
-                        HStack {
-                            Spacer()
-                            Label("236 no rolê", systemImage: "person.3.fill")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                        if location.placeIsOpen {
+                            HStack {
+                                Spacer()
+                                Label("236 no rolê", systemImage: "person.3.fill")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
                         }
                     }
 
@@ -213,6 +230,12 @@ struct PlaceView: View {
             ProfileView(userModel: userModel)
         }
         .navigationBarBackButtonHidden()
+        .overlay {
+            if showOpeningHours {
+                OpeningHoursPopup(openingHours: location.fixedLocation.weekdayText ?? [], isPresented: $showOpeningHours)
+                    .zIndex(1)
+            }
+        }
     }
 
     private func customizeNavigationBar() {
@@ -225,3 +248,66 @@ struct PlaceView: View {
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
 }
+
+import SwiftUI
+
+struct OpeningHoursPopup: View {
+    let openingHours: [String]
+
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        ZStack {
+            VisualEffectBlur(blurStyle: .systemUltraThinMaterialDark)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    isPresented = false
+                }
+
+            VStack(spacing: 0) {
+                HStack {
+                    Text("Horários de funcionamento")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.bottom, 4)
+                    Spacer()
+                    Button(action: {
+                        isPresented = false
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding()
+
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(openingHours, id: \.self) { day in
+                            Text(day)
+                                .font(.subheadline)
+                                .foregroundColor(day.contains("Fechado") ? .red : .white)
+                        }
+                    }
+                    .padding()
+                    Spacer()
+                }
+            }
+            .frame(maxWidth: 340)
+            .background(Color.black.opacity(0.4))
+            .cornerRadius(20)
+            .shadow(radius: 20)
+        }
+    }
+}
+
+struct VisualEffectBlur: UIViewRepresentable {
+    var blurStyle: UIBlurEffect.Style
+
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        return UIVisualEffectView(effect: UIBlurEffect(style: blurStyle))
+    }
+
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
+}
+

@@ -131,7 +131,6 @@ struct ProfileView: View {
                     .padding(.horizontal)
 
                     if viewModel.hasConnection || userSession.currentUser?.firebaseUid == userToShow?.firebaseUid {
-                        // Tabs
                         HStack(alignment: .center) {
                             Spacer()
                             Button(action: {
