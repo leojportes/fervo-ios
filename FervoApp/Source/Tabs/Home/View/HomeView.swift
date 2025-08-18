@@ -37,7 +37,6 @@ struct HomeView: View {
                 headerView
                 ScrollView {
                     VStack {
-                        sectionTitle
                         searchTappedView
                         Divider()
                             .background(Color.gray.opacity(0.2))
@@ -64,11 +63,8 @@ struct HomeView: View {
                         }
                     )
                 }
-                .sheet(isPresented: $isSearchViewPresented) {
-                    PeoplePlacesView { location in
-                        self.selectedLocation = LocationWithPosts(fixedLocation: location, posts: [])
-                        self.isSearchViewPresented = false
-                    }
+                .navigationDestination(isPresented: $isSearchViewPresented) {
+                    PeoplePlacesView(userSession: userSession)
                 }
                 .navigationDestination(item: $selectedLocation) { location in
                     PlaceView(location: location, userSession: userSession)
@@ -95,27 +91,6 @@ struct HomeView: View {
 private extension HomeView {
     var headerView: some View {
         HStack {
-            // MARK: - Avatar e Nome do Usuário (comentado para futura implementação)
-            /*
-            if let avatar = userSession.userProfileImage {
-                avatar
-                    .resizable()
-                    .clipShape(Circle())
-                    .frame(width: 40, height: 40)
-            } else {
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 40, height: 40)
-                    .shimmering()
-            }
-
-            if let name = userSession.currentUser?.name {
-                Text("Olá, \(name)!")
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-            }
-            */
-
             Spacer()
 
             Button(action: handleLogout) {
@@ -126,26 +101,12 @@ private extension HomeView {
         .padding(.top)
     }
 
-    var sectionTitle: some View {
-        HStack {
-            Text("Explorar")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-
-            Spacer()
-        }
-        .padding(.horizontal)
-        .padding(.top, 8)
-        .background(Color.FVColor.backgroundDark)
-    }
-
     var searchTappedView: some View {
         VStack(alignment: .leading, spacing: 16) {
             Button(action: { isSearchViewPresented = true }) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Qual o rolê de hoje?")
-                        .font(.title3)
+                    Text("Bora sair para um rolê?")
+                        .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
 
@@ -159,18 +120,13 @@ private extension HomeView {
 
                         Spacer()
                     }
-                    .padding()
+                    .padding(10)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color.FVColor.headerCardbackgroundColor)
                             .opacity(0.5)
                     )
                 }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.FVColor.cardBackground)
-                )
             }
             .buttonStyle(PlainButtonStyle())
 

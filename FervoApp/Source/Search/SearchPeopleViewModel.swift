@@ -8,26 +8,36 @@
 import Foundation
 import Combine
 
-class SearchViewModel: ObservableObject {
-    @Published var peopleResults: [String] = []
-    @Published var placesResults: [FixedLocation] = []
+final class SearchViewModel: ObservableObject {
+    @Published var peopleResults: [UserModel] = []
+    @Published var placesResults: [LocationWithPosts] = []
+    @Published var isFetchingPlaces: Bool = false
 
-    private let allPeople = ["Leonardo Portes", "Leonardo da Rosa", "Leonardo Silva", "Leonardo Souza"]
+    private let allPeople: [UserModel] = []
 
-    private var allPlaces: [FixedLocation] = []
+    private var allPlaces: [LocationWithPosts] = []
     private var cancellables = Set<AnyCancellable>()
 
-    func searchPeople(query: String) {
-        if query.isEmpty {
-            peopleResults = []
-        } else {
-            peopleResults = allPeople.filter { $0.localizedCaseInsensitiveContains(query) }
-        }
-    }
+    // Cache
+    private var lastFetchAt: Date?
+    private let cacheTTL: TimeInterval = 60 * 5 // 5 minutos
 
-    func fetchPlacesAndSearch(query: String) {
-        guard let url = URL(string: "\(baseIPForTest)/fixedlocations") else {
+    func fetchPlacesAndSearch(query: String, forceRefresh: Bool = false) {
+        // Usa cache se ainda válido
+        if !forceRefresh,
+           !allPlaces.isEmpty,
+           let last = lastFetchAt,
+           Date().timeIntervalSince(last) < cacheTTL {
+            print("[⚡️] Usando cache de locais")
+            filterPlaces(query: query)
+            isFetchingPlaces = false
+            return
+        }
+
+        isFetchingPlaces = true
+        guard let url = URL(string: "\(baseIPForTest)/locations-with-posts") else {
             print("[❌] URL inválida")
+            isFetchingPlaces = false
             return
         }
 
@@ -40,31 +50,24 @@ class SearchViewModel: ObservableObject {
         decoder.dateDecodingStrategy = .formatted(formatter)
 
         URLSession.shared.dataTaskPublisher(for: url)
-            .map { $0.data }
-            .map { data -> Data in
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("[📄] JSON recebido: \(jsonString)")
-                }
-                return data
-            }
-            .decode(type: [FixedLocation].self, decoder: decoder)
+            .map(\.data)
+            .decode(type: [LocationWithPosts].self, decoder: decoder)
             .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                switch completion {
-                case .failure(let error):
+            .sink { completion in
+                self.isFetchingPlaces = false
+                if case let .failure(error) = completion {
                     print("[❌] Erro ao buscar locais: \(error.localizedDescription)")
                     self.placesResults = []
-                case .finished:
-                    break
                 }
-            }, receiveValue: { locations in
+            } receiveValue: { locations in
                 print("[🗺️] Locations decodificadas: \(locations.count)")
                 self.allPlaces = locations
+                self.lastFetchAt = Date()
                 self.filterPlaces(query: query)
-            })
+                self.isFetchingPlaces = false
+            }
             .store(in: &cancellables)
     }
-
 
     private func filterPlaces(query: String) {
         if query.isEmpty {
@@ -72,18 +75,29 @@ class SearchViewModel: ObservableObject {
         } else {
             let normalizedQuery = normalize(query)
             placesResults = allPlaces.filter { location in
-                let normalizedName = normalize(location.name)
+                let normalizedName = normalize(location.fixedLocation.name)
                 return normalizedName.contains(normalizedQuery)
             }
         }
     }
 
+    func searchPeople(query: String) {
+        if query.isEmpty {
+            peopleResults = allPeople
+        } else {
+            let normalizedQuery = normalize(query)
+            peopleResults = allPeople.filter { user in
+                normalize(user.name).contains(normalizedQuery)
+            }
+        }
+    }
+
     private func normalize(_ string: String) -> String {
-        let allowedChars = CharacterSet.alphanumerics.union(.whitespaces)
+        let allowed = CharacterSet.alphanumerics.union(.whitespaces)
         return string
             .folding(options: .diacriticInsensitive, locale: .current)
             .lowercased()
-            .components(separatedBy: allowedChars.inverted)
+            .components(separatedBy: allowed.inverted)
             .joined()
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }

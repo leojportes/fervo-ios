@@ -69,7 +69,7 @@ class HomeViewModel: ObservableObject {
                 }
             } receiveValue: { [weak self] locations in
                 print("[🗺️] Locations recebidas: \(locations.count)")
-                self?.locationsWithPosts = locations
+                self?.locationsWithPosts = locations.filter { $0.posts?.isEmpty == false }
             }
             .store(in: &cancellables)
     }

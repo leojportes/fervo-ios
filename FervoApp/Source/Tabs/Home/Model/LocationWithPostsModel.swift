@@ -13,7 +13,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
     }
 
     let fixedLocation: FixedLocation
-    let posts: [Post]
+    let posts: [Post]?
 
     enum CodingKeys: String, CodingKey {
         case fixedLocation = "fixedlocation"
@@ -21,7 +21,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
     }
 
     var lastThreePosts: [Post] {
-        let posts = posts
+        let posts = posts ?? []
             .sorted(by: { $0.createdAt > $1.createdAt })
             .prefix(3)
             .sorted(by: { $0.createdAt > $1.createdAt })

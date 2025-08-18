@@ -89,7 +89,7 @@ enum Tab: String, CaseIterable {
         switch self {
         case .home: return "Home"
       //  case .groups: return "Grupos"
-        case .meetups: return "Rolês"
+        case .meetups: return "Missões"
         case .profile: return "Você"
         }
     }

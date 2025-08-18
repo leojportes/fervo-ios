@@ -18,28 +18,28 @@ struct PlaceView: View {
 
     var body: some View {
         NavigationStack {
-            HStack {
-                Button(action: {
-                    dismiss()
-                }) {
-                    Image(systemName: "chevron.left")
+            VStack(alignment: .leading) {
+                HStack(alignment: .center) {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .padding([.horizontal], 10)
+                    }
+                    Text(location.fixedLocation.name)
                         .font(.title2)
+                        .bold()
                         .foregroundColor(.white)
-                        .padding([.horizontal, .top], 10)
+                        .frame(maxHeight: .infinity, alignment: .center)
+                    Spacer()
                 }
-                Text(location.fixedLocation.name)
-                    .font(.title2)
-                    .bold()
-                    .foregroundColor(.white)
-                Spacer()
-                Button(action: {}) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.title3)
-                }
-                .foregroundColor(.white)
+                .padding(.top, 8)
+                .padding(.horizontal)
+                .background(Color.FVColor.backgroundDark)
+                .frame(height: 50)
             }
-            .padding(.horizontal)
-            .background(Color.FVColor.backgroundDark)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -70,8 +70,8 @@ struct PlaceView: View {
                                             .foregroundColor(.gray)
                                             .font(.caption)
                                         Image(systemName: "chevron.right")
-                                            .frame(width: 12, height: 12)
                                             .foregroundColor(.white)
+                                            .frame(width: 4, height: 4)
                                     }
                                 }
                             }
@@ -79,6 +79,7 @@ struct PlaceView: View {
 
                         Spacer()
                     }
+                    .background(Color.FVColor.backgroundDark)
 
                     // Prices and Details
                     HStack(spacing: 8) {
@@ -194,38 +195,40 @@ struct PlaceView: View {
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
-                                ForEach(location.posts) { post in
-                                    Button(
-                                        action: {
-                                            self.selectedUserOfPost = post.userPost
+                                if let posts = location.posts {
+                                    ForEach(posts) { post in
+                                        Button(
+                                            action: {
+                                                self.selectedUserOfPost = post.userPost
+                                            }
+                                        ) {
+                                            AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            } placeholder: {
+                                                Rectangle()
+                                                    .fill(Color.gray.opacity(0.2))
+                                                    .shimmering()
+                                            }
+                                            .frame(width: 120, height: 160)
+                                            .clipped()
+                                            .cornerRadius(8)
                                         }
-                                    ) {
-                                        AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                        } placeholder: {
-                                            Rectangle()
-                                                .fill(Color.gray.opacity(0.2))
-                                                .shimmering()
-                                        }
-                                        .frame(width: 120, height: 160)
-                                        .clipped()
-                                        .cornerRadius(8)
-                                    }
 
+                                    }
                                 }
                             }
                         }
                     }
+                    .background(Color.FVColor.backgroundDark)
                 }
                 .padding(.horizontal)
+                .background(Color.FVColor.backgroundDark)
             }
+            .background(Color.FVColor.backgroundDark.ignoresSafeArea())
         }
-        .background(Color.FVColor.backgroundDark)
-        .onAppear() {
-            customizeNavigationBar()
-        }
+        .background(Color.FVColor.backgroundDark.ignoresSafeArea())
         .navigationDestination(item: $selectedUserOfPost) { userModel in
             ProfileView(userModel: userModel)
         }
@@ -237,77 +240,4 @@ struct PlaceView: View {
             }
         }
     }
-
-    private func customizeNavigationBar() {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor.gray
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-    }
 }
-
-import SwiftUI
-
-struct OpeningHoursPopup: View {
-    let openingHours: [String]
-
-    @Binding var isPresented: Bool
-
-    var body: some View {
-        ZStack {
-            VisualEffectBlur(blurStyle: .systemUltraThinMaterialDark)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    isPresented = false
-                }
-
-            VStack(spacing: 0) {
-                HStack {
-                    Text("Horários de funcionamento")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(.bottom, 4)
-                    Spacer()
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding()
-
-                HStack {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(openingHours, id: \.self) { day in
-                            Text(day)
-                                .font(.subheadline)
-                                .foregroundColor(day.contains("Fechado") ? .red : .white)
-                        }
-                    }
-                    .padding()
-                    Spacer()
-                }
-            }
-            .frame(maxWidth: 340)
-            .background(Color.black.opacity(0.4))
-            .cornerRadius(20)
-            .shadow(radius: 20)
-        }
-    }
-}
-
-struct VisualEffectBlur: UIViewRepresentable {
-    var blurStyle: UIBlurEffect.Style
-
-    func makeUIView(context: Context) -> UIVisualEffectView {
-        return UIVisualEffectView(effect: UIBlurEffect(style: blurStyle))
-    }
-
-    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {}
-}
-
