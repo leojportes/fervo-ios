@@ -290,7 +290,7 @@ struct ProfileView: View {
                         }
                         .frame(width: geometry.size.width, height: 140)
                         .clipped()
-                        .contentShape(Rectangle()) // Para o clique pegar a área toda
+                        .contentShape(Rectangle())
                         .onTapGesture {
                             print("Post clicado index: \(index), total posts: \(viewModel.posts.count)")
                             selectedPostIndex = index
@@ -325,14 +325,6 @@ struct ProfileView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
-
-
-//struct ProfileView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ProfileView()
-//            .environmentObject(UserSession()) // Adiciona o ambiente necessário
-//    }
-//}
 
 struct PostCarouselView: View {
     let posts: [Post]
