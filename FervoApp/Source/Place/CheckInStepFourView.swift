@@ -1,5 +1,5 @@
 //
-//  CheckInStepTwoView.swift
+//  CheckInStepFourView.swift
 //  FervoApp
 //
 //  Created by Leonardo Jose De Oliveira Portes on 19/08/25.
@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-struct CheckInStepTwoView: View {
+struct CheckInStepFourView: View {
     @Environment(\.dismiss) private var dismiss
-    @State var nextStep: Bool = false
 
     var body: some View {
         NavigationView {
@@ -56,7 +55,7 @@ struct CheckInStepTwoView: View {
                 .padding(.leading, 20)
 
                 VStack {
-                    Text("Qual o valor do ingresso?")
+                    Text("Como está o movimento agora?")
                         .font(.title2)
                         .foregroundColor(.white)
                         .padding(.top, 35)
@@ -73,19 +72,19 @@ struct CheckInStepTwoView: View {
                     }
                 }
                 Spacer()
-                PriceSliderView()
+                CheckboxListView()
 
                 Spacer()
 
                 ProgressStepsView(steps: [
-                    Step(title: "Ingresso", reward: 50, isCompleted: false, isCurrent: true),
-                    Step(title: "Música", reward: 50, isCompleted: false, isCurrent: false),
-                    Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: false),
-                  //  Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
+                    Step(title: "Ingresso", reward: 50, isCompleted: true, isCurrent: true),
+                    Step(title: "Música", reward: 50, isCompleted: true, isCurrent: true),
+                    Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: true),
+                 //   Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
                 ])
 
                 Button(action: {
-                    nextStep = true
+                    print("Continuar")
                 }) {
                     Text("Continuar")
                         .foregroundColor(.white)
@@ -97,7 +96,7 @@ struct CheckInStepTwoView: View {
                 .padding(.horizontal)
 
                 Button(action: {
-                    print("pular")
+                    print("Continuar")
                 }) {
                     Text("Pular")
                         .foregroundColor(.gray)
@@ -109,49 +108,51 @@ struct CheckInStepTwoView: View {
             .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
         }
         .navigationBarBackButtonHidden()
-        .fullScreenCover(isPresented: $nextStep) {
-            CheckInStepThreeView()
-        }
     }
 
 }
 
-struct CheckInStepTwoView_Previews: PreviewProvider {
+struct CheckInStepFourView_Previews: PreviewProvider {
     static var previews: some View {
-        CheckInStepTwoView()
+        CheckInStepFourView()
     }
 }
 
+struct MovementOption: Identifiable {
+    let id = UUID()
+    let title: String
+    let emoji: String
+}
 
-struct PriceSliderView: View {
-    @State private var price: Double = 20
+struct CheckboxListView: View {
+    @State private var selectedOption: UUID? = nil
 
-    let minPrice: Double = 0
-    let maxPrice: Double = 1000
+    let options: [MovementOption] = [
+        MovementOption(title: "Pouco movimentado", emoji: "🔥"),
+        MovementOption(title: "Movimentado", emoji: "🔥🔥"),
+        MovementOption(title: "Muito movimentado", emoji: "🔥🔥🔥")
+    ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Preço")
-                    .foregroundColor(.white)
-                    .font(.system(size: 16, weight: .semibold))
-
-                Spacer()
-
-                Text("R$ \(Int(price))")
-                    .foregroundColor(.white)
-                    .font(.system(size: 16, weight: .semibold))
-
-            }
-
-            Slider(value: $price, in: minPrice...maxPrice, step: 5)
-                .accentColor(.blue)
-                .onChange(of: price) { newValue in
-                    print("Novo valor: \(newValue)")
+        VStack(spacing: 12) {
+            ForEach(options) { option in
+                Button(action: {
+                    selectedOption = option.id
+                }) {
+                    HStack {
+                        Image(systemName: selectedOption == option.id ? "checkmark.square.fill" : "square")
+                            .foregroundColor(selectedOption == option.id ? .fvCardBackgorund : .white)
+                        Text("\(option.title) \(option.emoji)")
+                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
                 }
+            }
         }
         .padding()
-        .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
     }
 }
-

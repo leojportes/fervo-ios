@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CheckInViewStepOneView: View {
     @Environment(\.dismiss) private var dismiss
+    @State var nextStep: Bool = false
 
     var body: some View {
         NavigationView {
@@ -77,11 +78,11 @@ struct CheckInViewStepOneView: View {
                     Step(title: "Ingresso", reward: 50, isCompleted: false, isCurrent: false),
                     Step(title: "Música", reward: 50, isCompleted: false, isCurrent: false),
                     Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: false),
-                    Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
+                  //  Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
                 ])
 
                 Button(action: {
-                    print("Continuar")
+                    nextStep = true
                 }) {
                     Text("Continuar")
                         .foregroundColor(.white)
@@ -102,6 +103,9 @@ struct CheckInViewStepOneView: View {
             .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
         }
         .navigationBarBackButtonHidden()
+        .fullScreenCover(isPresented: $nextStep) {
+            CheckInStepTwoView()
+        }
     }
 
 }

@@ -1,13 +1,14 @@
 //
-//  CheckInStepTwoView.swift
+//  CheckInStepThreeView.swift
 //  FervoApp
 //
 //  Created by Leonardo Jose De Oliveira Portes on 19/08/25.
 //
 
+
 import SwiftUI
 
-struct CheckInStepTwoView: View {
+struct CheckInStepThreeView: View {
     @Environment(\.dismiss) private var dismiss
     @State var nextStep: Bool = false
 
@@ -56,7 +57,7 @@ struct CheckInStepTwoView: View {
                 .padding(.leading, 20)
 
                 VStack {
-                    Text("Qual o valor do ingresso?")
+                    Text("Qual gênero musical está tocando?")
                         .font(.title2)
                         .foregroundColor(.white)
                         .padding(.top, 35)
@@ -73,13 +74,13 @@ struct CheckInStepTwoView: View {
                     }
                 }
                 Spacer()
-                PriceSliderView()
+                MusicStyleSelectorView()
 
                 Spacer()
 
                 ProgressStepsView(steps: [
-                    Step(title: "Ingresso", reward: 50, isCompleted: false, isCurrent: true),
-                    Step(title: "Música", reward: 50, isCompleted: false, isCurrent: false),
+                    Step(title: "Ingresso", reward: 50, isCompleted: true, isCurrent: true),
+                    Step(title: "Música", reward: 50, isCompleted: false, isCurrent: true),
                     Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: false),
                   //  Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
                 ])
@@ -97,7 +98,7 @@ struct CheckInStepTwoView: View {
                 .padding(.horizontal)
 
                 Button(action: {
-                    print("pular")
+                    print("Pular")
                 }) {
                     Text("Pular")
                         .foregroundColor(.gray)
@@ -110,48 +111,75 @@ struct CheckInStepTwoView: View {
         }
         .navigationBarBackButtonHidden()
         .fullScreenCover(isPresented: $nextStep) {
-            CheckInStepThreeView()
+            CheckInStepFourView()
         }
     }
 
 }
 
-struct CheckInStepTwoView_Previews: PreviewProvider {
+struct CheckInStepThreeView_Previews: PreviewProvider {
     static var previews: some View {
-        CheckInStepTwoView()
+        CheckInStepThreeView()
     }
 }
 
+struct MusicStyle: Identifiable, Hashable {
+    let id = UUID()
+    let name: String
+    let image: String
+}
 
-struct PriceSliderView: View {
-    @State private var price: Double = 20
+struct MusicStyleSelectorView: View {
+    let styles: [MusicStyle] = [
+        MusicStyle(name: "Eletrônico", image: "music.note"),
+        MusicStyle(name: "Hip Hop", image: "music.note"),
+        MusicStyle(name: "Funk", image: "music.note"),
+        MusicStyle(name: "Rap", image: "music.note"),
+        MusicStyle(name: "MPB", image: "music.note"),
+        MusicStyle(name: "Trap", image: "music.note"),
+        MusicStyle(name: "Pagode", image: "music.note"),
+        MusicStyle(name: "Pop", image: "music.note")
+    ]
 
-    let minPrice: Double = 0
-    let maxPrice: Double = 1000
+    @State private var selectedStyles: Set<MusicStyle> = []
+
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Preço")
-                    .foregroundColor(.white)
-                    .font(.system(size: 16, weight: .semibold))
+        LazyVGrid(columns: columns, spacing: 16) {
+            ForEach(styles) { style in
+                VStack {
+                    Text(style.name)
+                        .foregroundColor(.white)
+                        .font(.system(size: 14, weight: .medium))
 
-                Spacer()
-
-                Text("R$ \(Int(price))")
-                    .foregroundColor(.white)
-                    .font(.system(size: 16, weight: .semibold))
-
-            }
-
-            Slider(value: $price, in: minPrice...maxPrice, step: 5)
-                .accentColor(.blue)
-                .onChange(of: price) { newValue in
-                    print("Novo valor: \(newValue)")
+                    Image(systemName: style.image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 45, height: 45)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(selectedStyles.contains(style) ? Color.blue : Color.clear, lineWidth: 3)
+                        )
                 }
+                .onTapGesture {
+                    if selectedStyles.contains(style) {
+                        selectedStyles.remove(style)
+                    } else {
+                        selectedStyles.insert(style)
+                    }
+                }
+            }
         }
         .padding()
         .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
     }
 }
-

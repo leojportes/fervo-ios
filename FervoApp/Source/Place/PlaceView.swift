@@ -13,6 +13,7 @@ struct PlaceView: View {
     let userSession: UserSession
     @Environment(\.dismiss) private var dismiss
     @State private var showOpeningHours = false
+    @State private var onCheckinPresented = false
 
     @State private var selectedUserOfPost: UserModel?
 
@@ -124,9 +125,11 @@ struct PlaceView: View {
                         }
                     }
 
-                    if location.placeIsOpen {
-                        Button(action: {}) {
-                            Text("Confirmar Presença")
+                  //  if location.placeIsOpen {
+                        Button(action: {
+                            onCheckinPresented = true
+                        }) {
+                            Text("Check-in")
                                 .frame(maxWidth: 160)
                                 .padding()
                                 .background(
@@ -144,7 +147,7 @@ struct PlaceView: View {
                                 .foregroundColor(.white)
                                 .font(.subheadline)
                         }
-                    }
+                //    }
 
     //                // Participants
     //                HStack(spacing: -15) {
@@ -231,6 +234,9 @@ struct PlaceView: View {
         .background(Color.FVColor.backgroundDark.ignoresSafeArea())
         .navigationDestination(item: $selectedUserOfPost) { userModel in
             ProfileView(userModel: userModel)
+        }
+        .fullScreenCover(isPresented: $onCheckinPresented) {
+            CheckInViewStepOneView()
         }
         .navigationBarBackButtonHidden()
         .overlay {
