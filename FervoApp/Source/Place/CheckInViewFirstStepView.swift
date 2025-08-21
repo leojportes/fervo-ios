@@ -1,5 +1,5 @@
 //
-//  CheckInViewStepOneView.swift
+//  CheckInViewFirstStepView.swift
 //  FervoApp
 //
 //  Created by Leonardo Jose De Oliveira Portes on 18/08/25.
@@ -7,9 +7,12 @@
 
 import SwiftUI
 
-struct CheckInViewStepOneView: View {
+struct CheckInViewFirstStepView: View {
+    @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
     @State var nextStep: Bool = false
+    @StateObject private var placeViewModel = PlaceViewModel()
+    @State var location: LocationWithPosts
 
     var body: some View {
         NavigationView {
@@ -38,15 +41,15 @@ struct CheckInViewStepOneView: View {
                 }
 
                 VStack {
-                    Text("Como está o Don't Tell Mama agora?")
-                        .font(.title2)
+                    Text("Como está o \(location.fixedLocation.name)?")
+                        .font(.title2.bold())
                         .foregroundColor(.white)
                         .padding(.top, 35)
                         .padding(.bottom, 6)
 
                     HStack(spacing: 4) {
                         Text("Responda e ganhe até 250")
-                            .font(.headline)
+                            .font(.headline.weight(.regular))
                             .foregroundColor(.white)
 
                         Image(systemName: "bitcoinsign.circle.fill")
@@ -55,18 +58,19 @@ struct CheckInViewStepOneView: View {
                     }
                 }
 
-                Image("dontTellMamaLogo") // Substitua pelo nome da imagem no seu Assets
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 150, height: 150)
-                    .clipShape(Circle())
-                    .overlay(
-                        Circle()
-                            .stroke(Color.blue, lineWidth: 3)
-                    )
-                    .padding(.top)
+                AsyncImage(url: URL(string: location.fixedLocation.photoURL)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Color.gray.opacity(0.2)
+                        .shimmering()
+                }
+                .frame(width: 150, height: 150)
+                .clipShape(Circle())
+                .padding(.top)
 
-                Text("Se você não está no Don't Tell Mama, aproxime-se do local correto e realize o check-in novamente.")
+                Text("Se você não está no \(location.fixedLocation.name), aproxime-se do local correto e realize o check-in novamente.")
                     .font(.subheadline)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
@@ -82,7 +86,7 @@ struct CheckInViewStepOneView: View {
                 ])
 
                 Button(action: {
-                    nextStep = true
+                    flow.showSecond = true
                 }) {
                     Text("Continuar")
                         .foregroundColor(.white)
@@ -103,8 +107,8 @@ struct CheckInViewStepOneView: View {
             .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
         }
         .navigationBarBackButtonHidden()
-        .fullScreenCover(isPresented: $nextStep) {
-            CheckInStepTwoView()
+        .fullScreenCover(isPresented: $flow.showSecond) {
+            CheckInStepTwoView(placeViewModel: placeViewModel, location: location)
         }
     }
 
@@ -125,10 +129,11 @@ struct CheckItem: View {
     }
 }
 
-struct CheckInViewStepOneView_Previews: PreviewProvider {
-    static var previews: some View {
-        CheckInViewStepOneView()
-    }
-}
-
+//
+//struct CheckInViewStepOneView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        CheckInViewStepOneView()
+//    }
+//}
+//
 

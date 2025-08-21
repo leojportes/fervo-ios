@@ -13,7 +13,7 @@ struct PlaceView: View {
     let userSession: UserSession
     @Environment(\.dismiss) private var dismiss
     @State private var showOpeningHours = false
-    @State private var onCheckinPresented = false
+    @StateObject var checkinFlow = CheckinViewFlow()
 
     @State private var selectedUserOfPost: UserModel?
 
@@ -127,7 +127,7 @@ struct PlaceView: View {
 
                   //  if location.placeIsOpen {
                         Button(action: {
-                            onCheckinPresented = true
+                            checkinFlow.showFirst = true
                         }) {
                             Text("Check-in")
                                 .frame(maxWidth: 160)
@@ -147,25 +147,6 @@ struct PlaceView: View {
                                 .foregroundColor(.white)
                                 .font(.subheadline)
                         }
-                //    }
-
-    //                // Participants
-    //                HStack(spacing: -15) {
-    //                    ForEach(0..<3) { _ in
-    //                        Image("profile") // Substitua para imagens diferentes se quiser
-    //                            .resizable()
-    //                            .scaledToFill()
-    //                            .frame(width: 40, height: 40)
-    //                            .clipShape(Circle())
-    //                            .overlay(Circle().stroke(Color.black, lineWidth: 2))
-    //                    }
-    //
-    //                    Text("+25")
-    //                        .foregroundColor(.gray)
-    //                        .font(.subheadline)
-    //                        .padding(.leading, 8)
-    //                }
-    //                .padding(.top, 8)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Localização")
@@ -235,8 +216,9 @@ struct PlaceView: View {
         .navigationDestination(item: $selectedUserOfPost) { userModel in
             ProfileView(userModel: userModel)
         }
-        .fullScreenCover(isPresented: $onCheckinPresented) {
-            CheckInViewStepOneView()
+        .fullScreenCover(isPresented: $checkinFlow.showFirst) {
+            CheckInViewFirstStepView(location: location)
+                .environmentObject(checkinFlow)
         }
         .navigationBarBackButtonHidden()
         .overlay {
@@ -245,5 +227,21 @@ struct PlaceView: View {
                     .zIndex(1)
             }
         }
+    }
+}
+
+class CheckinViewFlow: ObservableObject {
+    @Published var showFirst = false
+    @Published var showSecond = false
+    @Published var showThird = false
+    @Published var showFourth = false
+    @Published var showSuccess = false
+
+    func closeAll() {
+        showFourth = false
+        showSuccess = false
+        showThird = false
+        showSecond = false
+        showFirst = false
     }
 }

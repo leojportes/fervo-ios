@@ -8,8 +8,11 @@
 import SwiftUI
 
 struct CheckInStepTwoView: View {
+    @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
     @State var nextStep: Bool = false
+    @StateObject var placeViewModel: PlaceViewModel
+    @State var location: LocationWithPosts
 
     var body: some View {
         NavigationView {
@@ -36,95 +39,94 @@ struct CheckInStepTwoView: View {
                     .background(Color.FVColor.backgroundDark)
                     .frame(height: 50)
                 }
-
-                HStack(alignment: .center, spacing: 20) {
-                    Image("dontTellMamaLogo") // Substitua pelo nome da imagem no seu Assets
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 60, height: 60)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(Color.blue, lineWidth: 3)
-                        )
-
-                    Text("Don't tell mama")
-                        .font(.title2)
-                        .foregroundColor(.white)
-                    Spacer()
-                }
-                .padding(.leading, 20)
-
-                VStack {
-                    Text("Qual o valor do ingresso?")
-                        .font(.title2)
-                        .foregroundColor(.white)
-                        .padding(.top, 35)
-                        .padding(.bottom, 6)
-
-                    HStack(spacing: 4) {
-                        Text("Responda e ganhe +50")
-                            .font(.headline)
-                            .foregroundColor(.white)
-
-                        Image(systemName: "bitcoinsign.circle.fill")
-                            .foregroundColor(.yellow)
-                            .font(.headline)
-                    }
-                }
-                Spacer()
-                PriceSliderView()
-
-                Spacer()
-
-                ProgressStepsView(steps: [
-                    Step(title: "Ingresso", reward: 50, isCompleted: false, isCurrent: true),
-                    Step(title: "Música", reward: 50, isCompleted: false, isCurrent: false),
-                    Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: false),
-                  //  Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
-                ])
-
-                Button(action: {
-                    nextStep = true
-                }) {
-                    Text("Continuar")
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
-
-                Button(action: {
-                    print("pular")
-                }) {
-                    Text("Pular")
-                        .foregroundColor(.gray)
-                }
-                .padding(.horizontal)
-                .padding(.bottom)
-
+                contentView
             }
             .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
         }
         .navigationBarBackButtonHidden()
-        .fullScreenCover(isPresented: $nextStep) {
-            CheckInStepThreeView()
+        .fullScreenCover(isPresented: $flow.showThird) {
+            CheckInStepThreeView(placeViewModel: placeViewModel, location: location)
+        }
+    }
+
+    var contentView: some View {
+        VStack {
+            HStack(alignment: .center, spacing: 20) {
+                AsyncImage(url: URL(string: location.fixedLocation.photoURL)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Color.gray.opacity(0.2)
+                        .shimmering()
+                }
+                .frame(width: 60, height: 60)
+                .clipShape(Circle())
+                .padding(.top)
+
+                Text(location.fixedLocation.name)
+                    .font(.title2)
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            .padding(.leading, 20)
+
+            VStack {
+                Text("Qual o preço do ingresso?")
+                    .font(.headline.weight(.regular))
+                    .foregroundColor(.white)
+                    .padding(.top, 35)
+                    .padding(.bottom, 6)
+
+                HStack(spacing: 4) {
+                    Text("Responda e ganhe +50")
+                        .font(.title2.bold())
+                        .foregroundColor(.white)
+
+                    Image(systemName: "bitcoinsign.circle.fill")
+                        .foregroundColor(.yellow)
+                        .font(.headline)
+                }
+            }
+            Spacer()
+            PriceSliderView(price: $placeViewModel.price)
+
+            Spacer()
+
+            ProgressStepsView(steps: [
+                Step(title: "Ingresso", reward: 50, isCompleted: false, isCurrent: true),
+                Step(title: "Música", reward: 50, isCompleted: false, isCurrent: false),
+                Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: false),
+              //  Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
+            ])
+
+            Button(action: {
+                flow.showThird = true
+            }) {
+                Text("Continuar")
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+            .padding(.horizontal)
+
+            Button(action: {
+                print("pular")
+            }) {
+                Text("Pular")
+                    .foregroundColor(.gray)
+            }
+            .padding(.horizontal)
+            .padding(.bottom)
         }
     }
 
 }
 
-struct CheckInStepTwoView_Previews: PreviewProvider {
-    static var previews: some View {
-        CheckInStepTwoView()
-    }
-}
-
-
 struct PriceSliderView: View {
-    @State private var price: Double = 20
+    @Binding var price: Double
 
     let minPrice: Double = 0
     let maxPrice: Double = 1000
@@ -141,14 +143,10 @@ struct PriceSliderView: View {
                 Text("R$ \(Int(price))")
                     .foregroundColor(.white)
                     .font(.system(size: 16, weight: .semibold))
-
             }
 
             Slider(value: $price, in: minPrice...maxPrice, step: 5)
                 .accentColor(.blue)
-                .onChange(of: price) { newValue in
-                    print("Novo valor: \(newValue)")
-                }
         }
         .padding()
         .background(Color.fvBackground.edgesIgnoringSafeArea(.all))

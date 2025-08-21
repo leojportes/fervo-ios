@@ -1,17 +1,15 @@
 //
-//  CheckInStepThreeView.swift
+//  CheckInStepFourthView.swift
 //  FervoApp
 //
 //  Created by Leonardo Jose De Oliveira Portes on 19/08/25.
 //
 
-
 import SwiftUI
 
-struct CheckInStepThreeView: View {
+struct CheckInStepFourthView: View {
     @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
-    @State var nextStep: Bool = false
     @StateObject var placeViewModel: PlaceViewModel
     @State var location: LocationWithPosts
 
@@ -45,8 +43,9 @@ struct CheckInStepThreeView: View {
             .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
         }
         .navigationBarBackButtonHidden()
-        .fullScreenCover(isPresented: $flow.showFourth) {
-            CheckInStepFourthView(placeViewModel: placeViewModel, location: location)
+        .fullScreenCover(isPresented: $flow.showSuccess) {
+           CheckinSuccessView()
+                .environmentObject(flow)
         }
     }
 
@@ -73,7 +72,7 @@ struct CheckInStepThreeView: View {
             .padding(.leading, 20)
 
             VStack {
-                Text("Qual gênero musical está tocando?")
+                Text("Como está o movimento agora?")
                     .font(.headline.bold())
                     .foregroundColor(.white)
                     .padding(.top, 35)
@@ -81,7 +80,7 @@ struct CheckInStepThreeView: View {
 
                 HStack(spacing: 4) {
                     Text("Responda e ganhe +50")
-                        .font(.title2.bold())
+                        .font(.title2.weight(.regular))
                         .foregroundColor(.white)
 
                     Image(systemName: "bitcoinsign.circle.fill")
@@ -90,19 +89,19 @@ struct CheckInStepThreeView: View {
                 }
             }
             Spacer()
-            MusicStyleSelectorView(selectedStyles: $placeViewModel.musicalTaste)
+            CheckboxListView(selectedOption: $placeViewModel.crowdLevel)
 
             Spacer()
 
             ProgressStepsView(steps: [
                 Step(title: "Ingresso", reward: 50, isCompleted: true, isCurrent: true),
-                Step(title: "Música", reward: 50, isCompleted: false, isCurrent: true),
-                Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: false),
-              //  Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
+                Step(title: "Música", reward: 50, isCompleted: true, isCurrent: true),
+                Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: true),
+             // Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
             ])
 
             Button(action: {
-                flow.showFourth = true
+                print("Continuar")
             }) {
                 Text("Continuar")
                     .foregroundColor(.white)
@@ -114,7 +113,7 @@ struct CheckInStepThreeView: View {
             .padding(.horizontal)
 
             Button(action: {
-                print("Pular")
+                flow.showSuccess = true
             }) {
                 Text("Pular")
                     .foregroundColor(.gray)
@@ -123,69 +122,42 @@ struct CheckInStepThreeView: View {
             .padding(.bottom)
         }
     }
-
 }
 
-struct MusicStyle: Identifiable, Hashable {
+struct MovementOption: Identifiable {
     let id = UUID()
-    let name: String
-    let image: String
+    let title: String
+    let emoji: String
 }
 
-struct MusicStyleSelectorView: View {
-    let styles: [MusicStyle] = [
-        MusicStyle(name: "Eletro", image: ""),
-        MusicStyle(name: "Hip Hop", image: ""),
-        MusicStyle(name: "Funk", image: ""),
-        MusicStyle(name: "Rap", image: ""),
-        MusicStyle(name: "MPB", image: ""),
-        MusicStyle(name: "Trap", image: ""),
-        MusicStyle(name: "Pagode", image: ""),
-        MusicStyle(name: "Pop", image: "")
-    ]
-
-    @Binding var selectedStyles: [String]
-
-    let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible()),
-        GridItem(.flexible())
-    ]
+struct CheckboxListView: View {
+    @Binding var selectedOption: CrowdLevel
 
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 12) {
-            ForEach(styles) { style in
-                VStack {
-                    ZStack {
-                        // Fundo escuro
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black)
-                            .frame(width: 75, height: 75)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 14)
-                                    .stroke(selectedStyles.contains(style.name) ? Color.blue : Color.clear, lineWidth: 3)
-                            )
+        VStack(spacing: 12) {
+            ForEach(CrowdLevel.allCases, id: \.self) { option in
+                Button(action: {
+                    selectedOption = option
+                }) {
+                    HStack {
+                        Image(systemName: selectedOption == option ? "checkmark.square.fill" : "square")
+                            .foregroundColor(selectedOption == option ? .fvBackground : .white)
 
-                        Text(style.name)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color.blue)
-                            .shadow(color: Color.purple, radius: 5, x: 0, y: 0)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.5)
+                        Text(option.title)
+                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+
+                        option.emojiView
+
+                        Spacer()
                     }
-                }
-                .onTapGesture {
-                    if selectedStyles.contains(style.name) {
-                        selectedStyles.removeAll(where: { $0 == style.name })
-                    } else {
-                        selectedStyles.append(style.name)
-                    }
+                    .padding(12)
+                    .background(selectedOption == option ? .blue : Color.blue.opacity(0.5))
+                    .cornerRadius(20)
                 }
             }
         }
         .padding()
-        .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
     }
 }
+

@@ -20,6 +20,10 @@ extension Color {
         static var headerCardbackgroundColor: Color {
             return Color("fv_headerCardbackgroundColor")
         }
+
+        static var purpleNeon: Color {
+            return Color("purple_neon")
+        }
     }
 }
 
@@ -36,6 +40,10 @@ extension UIColor {
 
         static var headerCardbackgroundColor: UIColor {
             return UIColor(named: "fv_headerCardbackgroundColor") ?? .systemGray4
+        }
+
+        static var purpleNeon: UIColor {
+            return UIColor(named: "purple_neon") ?? .purple
         }
     }
 
