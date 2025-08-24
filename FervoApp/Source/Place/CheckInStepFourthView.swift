@@ -73,14 +73,14 @@ struct CheckInStepFourthView: View {
 
             VStack {
                 Text("Como está o movimento agora?")
-                    .font(.headline.bold())
+                    .font(.title2.bold())
                     .foregroundColor(.white)
                     .padding(.top, 35)
                     .padding(.bottom, 6)
 
                 HStack(spacing: 4) {
                     Text("Responda e ganhe +50")
-                        .font(.title2.weight(.regular))
+                        .font(.headline.weight(.regular))
                         .foregroundColor(.white)
 
                     Image(systemName: "bitcoinsign.circle.fill")
@@ -90,20 +90,19 @@ struct CheckInStepFourthView: View {
             }
             Spacer()
             CheckboxListView(selectedOption: $placeViewModel.crowdLevel)
-
             Spacer()
 
             ProgressStepsView(steps: [
                 Step(title: "Ingresso", reward: 50, isCompleted: true, isCurrent: true),
                 Step(title: "Música", reward: 50, isCompleted: true, isCurrent: true),
                 Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: true),
-             // Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
+                // Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
             ])
 
             Button(action: {
-                print("Continuar")
+                flow.showSuccess = true
             }) {
-                Text("Continuar")
+                Text("Finalizar check-in")
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -111,15 +110,7 @@ struct CheckInStepFourthView: View {
                     .cornerRadius(10)
             }
             .padding(.horizontal)
-
-            Button(action: {
-                flow.showSuccess = true
-            }) {
-                Text("Pular")
-                    .foregroundColor(.gray)
-            }
-            .padding(.horizontal)
-            .padding(.bottom)
+            .padding(.bottom, 20)
         }
     }
 }

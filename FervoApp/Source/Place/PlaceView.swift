@@ -129,23 +129,26 @@ struct PlaceView: View {
                         Button(action: {
                             checkinFlow.showFirst = true
                         }) {
-                            Text("Check-in")
-                                .frame(maxWidth: 160)
-                                .padding()
-                                .background(
-                                    LinearGradient(
-                                        gradient: Gradient(
-                                            colors: [
-                                                Color.fvHeaderCardbackground,
-                                                Color.blue
-                                            ]
-                                        ),
-                                        startPoint: .leading, endPoint: .trailing
-                                    )
-                                )
-                                .cornerRadius(15)
-                                .foregroundColor(.white)
-                                .font(.subheadline)
+                            VStack {
+                                Text("Check-in")
+                                    .foregroundColor(.white)
+                                    .font(.headline)
+
+                                HStack(spacing: 4) {
+                                    Text("Ganhe 250 pontos")
+                                        .foregroundColor(.white)
+                                        .font(.caption2)
+
+                                    Image(systemName: "bitcoinsign.circle.fill")
+                                        .foregroundColor(.yellow)
+                                        .font(.caption)
+                                        .shadow(radius: 4)
+                                }
+                            }
+                            .frame(maxWidth: 160)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(15)
                         }
 
                     VStack(alignment: .leading, spacing: 8) {
@@ -154,8 +157,8 @@ struct PlaceView: View {
                             .bold()
                             .foregroundColor(.white)
 
-                        MapView(
-                            coordinate: .init(latitude: location.fixedLocation.location.lat, longitude: location.fixedLocation.location.lng),
+                        MapContentView(
+                            initialCoordinate: .init(latitude: location.fixedLocation.location.lat, longitude: location.fixedLocation.location.lng),
                             span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
                         )
                         .frame(height: 200)
@@ -204,6 +207,7 @@ struct PlaceView: View {
                                 }
                             }
                         }
+                        Spacer().frame(height: 20)
                     }
                     .background(Color.FVColor.backgroundDark)
                 }

@@ -73,14 +73,14 @@ struct CheckInStepTwoView: View {
 
             VStack {
                 Text("Qual o preço do ingresso?")
-                    .font(.headline.weight(.regular))
+                    .font(.title2.bold())
                     .foregroundColor(.white)
                     .padding(.top, 35)
                     .padding(.bottom, 6)
 
                 HStack(spacing: 4) {
                     Text("Responda e ganhe +50")
-                        .font(.title2.bold())
+                        .font(.headline.weight(.regular))
                         .foregroundColor(.white)
 
                     Image(systemName: "bitcoinsign.circle.fill")
@@ -111,15 +111,7 @@ struct CheckInStepTwoView: View {
                     .cornerRadius(10)
             }
             .padding(.horizontal)
-
-            Button(action: {
-                print("pular")
-            }) {
-                Text("Pular")
-                    .foregroundColor(.gray)
-            }
-            .padding(.horizontal)
-            .padding(.bottom)
+            .padding(.bottom, 20)
         }
     }
 

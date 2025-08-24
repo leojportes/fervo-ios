@@ -74,14 +74,14 @@ struct CheckInStepThreeView: View {
 
             VStack {
                 Text("Qual gênero musical está tocando?")
-                    .font(.headline.bold())
+                    .font(.title2.bold())
                     .foregroundColor(.white)
                     .padding(.top, 35)
                     .padding(.bottom, 6)
 
                 HStack(spacing: 4) {
                     Text("Responda e ganhe +50")
-                        .font(.title2.bold())
+                        .font(.headline.weight(.regular))
                         .foregroundColor(.white)
 
                     Image(systemName: "bitcoinsign.circle.fill")
@@ -112,15 +112,7 @@ struct CheckInStepThreeView: View {
                     .cornerRadius(10)
             }
             .padding(.horizontal)
-
-            Button(action: {
-                print("Pular")
-            }) {
-                Text("Pular")
-                    .foregroundColor(.gray)
-            }
-            .padding(.horizontal)
-            .padding(.bottom)
+            .padding(.bottom, 20)
         }
     }
 

@@ -10,6 +10,7 @@ import Lottie
 
 struct CheckinSuccessView: View {
     @EnvironmentObject var flow: CheckinViewFlow
+    @State var activeButton: Bool = false
 
     var body: some View {
         NavigationView {
@@ -40,17 +41,22 @@ struct CheckinSuccessView: View {
     var contentView: some View {
         VStack {
             Spacer()
-            LottieView(animationName: "success_animation")
+            LottieView(animationName: "success_animation", loopMode: .playOnce)
+            .frame(width: 250, height: 250)
+            Spacer()
+
             Button(action: {
                 flow.closeAll()
             }) {
-                
-                Text("Finalizar")
-                    .foregroundColor(.gray)
+                Text("Ir para o local")
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
             }
             .padding(.horizontal)
-            .padding(.bottom)
-            Spacer()
+            .padding(.bottom, 20)
         }
     }
 
