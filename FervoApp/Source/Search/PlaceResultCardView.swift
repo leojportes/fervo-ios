@@ -1,13 +1,13 @@
 //
-//  StickyHeaderView.swift
+//  PlaceResultCardView.swift
 //  FervoApp
 //
-//  Created by Leonardo Jose De Oliveira Portes on 22/05/25.
+//  Created by Leonardo Jose De Oliveira Portes on 17/08/25.
 //
 
 import SwiftUI
 
-struct StickyHeaderView: View {
+struct PlaceResultCardView: View {
     @State var location: LocationWithPosts
     let onTap: () -> Void
 
@@ -41,6 +41,16 @@ struct StickyHeaderView: View {
                     Text(location.fixedLocation.city)
                         .font(.subheadline.bold())
                         .foregroundColor(.gray)
+
+                    Text(location.fixedLocation.mapPriceLevelToString)
+                        .font(.subheadline.bold())
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+
+                    Text(location.todayOpeningHours)
+                        .font(.caption)
+                        .foregroundColor(.gray)
                 }
 
                 Spacer()
@@ -58,7 +68,6 @@ struct StickyHeaderView: View {
         )
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 10)
-        .padding(.horizontal, 8)
         .onTapGesture {
             onTap()
         }

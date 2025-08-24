@@ -13,7 +13,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
     }
 
     let fixedLocation: FixedLocation
-    let posts: [Post]
+    let posts: [Post]?
 
     enum CodingKeys: String, CodingKey {
         case fixedLocation = "fixedlocation"
@@ -21,12 +21,13 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
     }
 
     var lastThreePosts: [Post] {
-        let posts = posts
+        let posts = posts ?? []
             .sorted(by: { $0.createdAt > $1.createdAt })
             .prefix(3)
             .sorted(by: { $0.createdAt > $1.createdAt })
         return posts
     }
+    
 
     var todayOpeningHours: String {
         guard let weekDays = fixedLocation.weekdayText else { return "" }
@@ -60,7 +61,6 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
             if let range = yesterdayLine.range(of: ":") {
                 let timePart = yesterdayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
 
-                // Exemplo: "21:00 – 04:00"
                 let parts = timePart.components(separatedBy: "–").map { $0.trimmingCharacters(in: .whitespaces) }
                 if parts.count == 2 {
                     let openTime = parts[0]
@@ -84,9 +84,25 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
             }
         }
 
+        // 🔍 Se estiver fechado, procurar o próximo dia aberto
+        for i in 1...7 {
+            guard let futureDate = calendar.date(byAdding: .day, value: i, to: now) else { continue }
+            let futureDay = formatter.string(from: futureDate).lowercased()
+
+            if let futureLine = weekDays.first(where: { $0.lowercased().hasPrefix(futureDay) }) {
+                if let range = futureLine.range(of: ":") {
+                    let timePart = futureLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
+                    if timePart.lowercased() != "fechado" {
+                        // Exemplo de retorno: "Abre quinta-feira às 21:00"
+                        let dayCapitalized = futureDay.prefix(1).uppercased() + futureDay.dropFirst()
+                        return "Abre \(dayCapitalized) às \(timePart.components(separatedBy: "–").first!.trimmingCharacters(in: .whitespaces))"
+                    }
+                }
+            }
+        }
+
         return ""
     }
-
 
     var placeIsOpen: Bool {
         guard let weekDays = fixedLocation.weekdayText else { return false }

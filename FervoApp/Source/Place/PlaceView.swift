@@ -12,33 +12,35 @@ struct PlaceView: View {
     @State var location: LocationWithPosts
     let userSession: UserSession
     @Environment(\.dismiss) private var dismiss
+    @State private var showOpeningHours = false
+    @StateObject var checkinFlow = CheckinViewFlow()
 
     @State private var selectedUserOfPost: UserModel?
 
     var body: some View {
         NavigationStack {
-            HStack {
-                Button(action: {
-                    dismiss()
-                }) {
-                    Image(systemName: "chevron.left")
+            VStack(alignment: .leading) {
+                HStack(alignment: .center) {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                            .padding([.horizontal], 10)
+                    }
+                    Text(location.fixedLocation.name)
                         .font(.title2)
+                        .bold()
                         .foregroundColor(.white)
-                        .padding([.horizontal, .top], 10)
+                        .frame(maxHeight: .infinity, alignment: .center)
+                    Spacer()
                 }
-                Text(location.fixedLocation.name)
-                    .font(.title2)
-                    .bold()
-                    .foregroundColor(.white)
-                Spacer()
-                Button(action: {}) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.title3)
-                }
-                .foregroundColor(.white)
+                .padding(.top, 8)
+                .padding(.horizontal)
+                .background(Color.FVColor.backgroundDark)
+                .frame(height: 50)
             }
-            .padding(.horizontal)
-            .background(Color.FVColor.backgroundDark)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
@@ -60,13 +62,25 @@ struct PlaceView: View {
                                 .font(.caption)
                                 .foregroundColor(location.placeIsOpen ? .green : .red)
 
-                            Text(location.todayOpeningHours)
-                                .foregroundColor(.gray)
-                                .font(.caption)
+                            if location.fixedLocation.weekdayText != nil {
+                                Button {
+                                    withAnimation { showOpeningHours = true }
+                                } label: {
+                                    HStack {
+                                        Text(location.todayOpeningHours)
+                                            .foregroundColor(.gray)
+                                            .font(.caption)
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.white)
+                                            .frame(width: 4, height: 4)
+                                    }
+                                }
+                            }
                         }
 
                         Spacer()
                     }
+                    .background(Color.FVColor.backgroundDark)
 
                     // Prices and Details
                     HStack(spacing: 8) {
@@ -86,12 +100,14 @@ struct PlaceView: View {
                                 .foregroundColor(.white)
                         }
 
-                        Label("236 pessoas agora", systemImage: "person.2.fill")
-                            .padding(8)
-                            .background(Color.fvHeaderCardbackground)
-                            .cornerRadius(10)
-                            .font(.caption)
-                            .foregroundColor(.white)
+                        if location.placeIsOpen {
+                            Label("236 pessoas agora", systemImage: "person.2.fill")
+                                .padding(8)
+                                .background(Color.fvHeaderCardbackground)
+                                .cornerRadius(10)
+                                .font(.caption)
+                                .foregroundColor(.white)
+                        }
 
                         if let website = location.fixedLocation.website,
                            let url = URL(string: website) {
@@ -109,44 +125,31 @@ struct PlaceView: View {
                         }
                     }
 
-                    // Confirm Button
-                    Button(action: {}) {
-                        Text("Confirmar Presença")
+                  //  if location.placeIsOpen {
+                        Button(action: {
+                            checkinFlow.showFirst = true
+                        }) {
+                            VStack {
+                                Text("Check-in")
+                                    .foregroundColor(.white)
+                                    .font(.headline)
+
+                                HStack(spacing: 4) {
+                                    Text("Ganhe 250 pontos")
+                                        .foregroundColor(.white)
+                                        .font(.caption2)
+
+                                    Image(systemName: "bitcoinsign.circle.fill")
+                                        .foregroundColor(.yellow)
+                                        .font(.caption)
+                                        .shadow(radius: 4)
+                                }
+                            }
                             .frame(maxWidth: 160)
                             .padding()
-                            .background(
-                                LinearGradient(
-                                    gradient: Gradient(
-                                        colors: [
-                                            Color.fvHeaderCardbackground,
-                                            Color.blue
-                                        ]
-                                    ),
-                                    startPoint: .leading, endPoint: .trailing
-                                )
-                            )
+                            .background(Color.blue)
                             .cornerRadius(15)
-                            .foregroundColor(.white)
-                            .font(.subheadline)
-                    }
-
-    //                // Participants
-    //                HStack(spacing: -15) {
-    //                    ForEach(0..<3) { _ in
-    //                        Image("profile") // Substitua para imagens diferentes se quiser
-    //                            .resizable()
-    //                            .scaledToFill()
-    //                            .frame(width: 40, height: 40)
-    //                            .clipShape(Circle())
-    //                            .overlay(Circle().stroke(Color.black, lineWidth: 2))
-    //                    }
-    //
-    //                    Text("+25")
-    //                        .foregroundColor(.gray)
-    //                        .font(.subheadline)
-    //                        .padding(.leading, 8)
-    //                }
-    //                .padding(.top, 8)
+                        }
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Localização")
@@ -154,18 +157,20 @@ struct PlaceView: View {
                             .bold()
                             .foregroundColor(.white)
 
-                        MapView(
-                            coordinate: .init(latitude: location.fixedLocation.location.lat, longitude: location.fixedLocation.location.lng),
+                        MapContentView(
+                            initialCoordinate: .init(latitude: location.fixedLocation.location.lat, longitude: location.fixedLocation.location.lng),
                             span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
                         )
                         .frame(height: 200)
                         .cornerRadius(15)
 
-                        HStack {
-                            Spacer()
-                            Label("236 no rolê", systemImage: "person.3.fill")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                        if location.placeIsOpen {
+                            HStack {
+                                Spacer()
+                                Label("236 no rolê", systemImage: "person.3.fill")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
                         }
                     }
 
@@ -177,51 +182,70 @@ struct PlaceView: View {
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
-                                ForEach(location.posts) { post in
-                                    Button(
-                                        action: {
-                                            self.selectedUserOfPost = post.userPost
+                                if let posts = location.posts {
+                                    ForEach(posts) { post in
+                                        Button(
+                                            action: {
+                                                self.selectedUserOfPost = post.userPost
+                                            }
+                                        ) {
+                                            AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            } placeholder: {
+                                                Rectangle()
+                                                    .fill(Color.gray.opacity(0.2))
+                                                    .shimmering()
+                                            }
+                                            .frame(width: 120, height: 160)
+                                            .clipped()
+                                            .cornerRadius(8)
                                         }
-                                    ) {
-                                        AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
-                                            image
-                                                .resizable()
-                                                .scaledToFill()
-                                        } placeholder: {
-                                            Rectangle()
-                                                .fill(Color.gray.opacity(0.2))
-                                                .shimmering()
-                                        }
-                                        .frame(width: 120, height: 160)
-                                        .clipped()
-                                        .cornerRadius(8)
-                                    }
 
+                                    }
                                 }
                             }
                         }
+                        Spacer().frame(height: 20)
                     }
+                    .background(Color.FVColor.backgroundDark)
                 }
                 .padding(.horizontal)
+                .background(Color.FVColor.backgroundDark)
             }
+            .background(Color.FVColor.backgroundDark.ignoresSafeArea())
         }
-        .background(Color.FVColor.backgroundDark)
-        .onAppear() {
-            customizeNavigationBar()
-        }
+        .background(Color.FVColor.backgroundDark.ignoresSafeArea())
         .navigationDestination(item: $selectedUserOfPost) { userModel in
             ProfileView(userModel: userModel)
         }
+        .fullScreenCover(isPresented: $checkinFlow.showFirst) {
+            CheckInViewFirstStepView(location: location)
+                .environmentObject(checkinFlow)
+        }
         .navigationBarBackButtonHidden()
+        .overlay {
+            if showOpeningHours {
+                OpeningHoursPopup(openingHours: location.fixedLocation.weekdayText ?? [], isPresented: $showOpeningHours)
+                    .zIndex(1)
+            }
+        }
     }
+}
 
-    private func customizeNavigationBar() {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor.gray
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+class CheckinViewFlow: ObservableObject {
+    @Published var showFirst = false
+    @Published var showSecond = false
+    @Published var showThird = false
+    @Published var showFourth = false
+    @Published var showSuccess = false
+
+    func closeAll() {
+        showFourth = false
+        showSuccess = false
+        showThird = false
+        showSecond = false
+        showFirst = false
     }
 }
