@@ -84,7 +84,3 @@ struct CheckInFailedView: View {
         }
     }
 }
-
-//#Preview {
-//    CheckInFailedView()
-//}
