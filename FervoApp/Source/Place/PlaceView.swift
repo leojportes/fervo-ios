@@ -14,6 +14,18 @@ struct PlaceView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showOpeningHours = false
     @StateObject var checkinFlow = CheckinViewFlow()
+    @StateObject private var viewModel: PlaceViewModel
+    @State private var showTooltip = false
+
+    init(location: LocationWithPosts, userSession: UserSession) {
+        _location = State(initialValue: location)
+        self.userSession = userSession
+        _viewModel = StateObject(
+            wrappedValue: PlaceViewModel(
+                firebaseUid: userSession.currentUser?.firebaseUid ?? ""
+            )
+        )
+    }
 
     @State private var selectedUserOfPost: UserModel?
 
@@ -101,12 +113,12 @@ struct PlaceView: View {
                         }
 
                         if location.placeIsOpen {
-                            Label("236 pessoas agora", systemImage: "person.2.fill")
+                            Label(viewModel.peoplesNowDescription, systemImage: "person.3.fill")
                                 .padding(8)
                                 .background(Color.fvHeaderCardbackground)
                                 .cornerRadius(10)
                                 .font(.caption)
-                                .foregroundColor(.white)
+                                .foregroundColor(.green)
                         }
 
                         if let website = location.fixedLocation.website,
@@ -125,41 +137,83 @@ struct PlaceView: View {
                         }
                     }
 
-                  //  if location.placeIsOpen {
-                        Button(action: {
-                            checkinFlow.showFirst = true
-                        }) {
-                            VStack {
-                                Text("Check-in")
-                                    .foregroundColor(.white)
-                                    .font(.headline)
+                    if !viewModel.isFetchingActiveUsers {
+                        if !currentUserHasCheckedIn() {
+                            Button(action: {
+                                checkinFlow.showFirst = true
+                            }) {
+                                VStack {
+                                    Text("Check-in")
+                                        .foregroundColor(location.placeIsOpen ? .white : .gray)
+                                        .font(.subheadline)
 
-                                HStack(spacing: 4) {
-                                    Text("Ganhe 250 pontos")
+                                    HStack(spacing: 4) {
+                                        Text(location.placeIsOpen ? "Ganhe 250 pontos" : location.fixedLocation.timeUntilNextOpen() ?? "")
+                                            .foregroundColor(.white)
+                                            .font(.caption2)
+                                        if location.placeIsOpen {
+                                            Image(systemName: "bitcoinsign.circle.fill")
+                                                .foregroundColor(.yellow)
+                                                .font(.caption)
+                                                .shadow(radius: 4)
+                                        }
+                                    }
+                                }
+                                .frame(maxWidth: 100)
+                                .padding()
+                                .background(location.placeIsOpen ? Color.blue : Color.blue.opacity(0.3))
+                                .cornerRadius(15)
+                            }
+                            .disabled(!location.placeIsOpen)
+                        } else if location.placeIsOpen && currentUserHasCheckedIn() {
+                            Button(action: {
+                                showTooltip = true
+                            }) {
+                                HStack {
+                                    Text("Você está nesse local")
                                         .foregroundColor(.white)
-                                        .font(.caption2)
+                                        .font(.subheadline)
 
-                                    Image(systemName: "bitcoinsign.circle.fill")
-                                        .foregroundColor(.yellow)
-                                        .font(.caption)
+                                    Image(systemName: "info.circle")
+                                        .foregroundColor(.black)
+                                        .font(.subheadline)
                                         .shadow(radius: 4)
                                 }
+                                .frame(maxWidth: 190)
+                                .padding()
+                                .background(Color.blue.opacity(0.5))
+                                .cornerRadius(15)
                             }
-                            .frame(maxWidth: 160)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(15)
                         }
+                    } else {
+                        Spacer().frame(height: 50)
+                    }
+
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Localização")
-                            .font(.title3)
-                            .bold()
-                            .foregroundColor(.white)
+                        HStack {
+                            Text(location.placeIsOpen ? "Quem está no rolê agora" : "Localização")
+                                .font(.title3)
+                                .bold()
+                                .foregroundColor(.white)
+                            Spacer()
+
+                            Button {
+                                viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(8)
+                                    .background(Color.blue.opacity(0.2))
+                                    .clipShape(Circle())
+                            }
+                        }
 
                         MapContentView(
                             initialCoordinate: .init(latitude: location.fixedLocation.location.lat, longitude: location.fixedLocation.location.lng),
-                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
+                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002),
+                            users: location.placeIsOpen ? viewModel.activeUsers : []
                         )
                         .frame(height: 200)
                         .cornerRadius(15)
@@ -167,12 +221,23 @@ struct PlaceView: View {
                         if location.placeIsOpen {
                             HStack {
                                 Spacer()
-                                Label("236 no rolê", systemImage: "person.3.fill")
-                                    .font(.subheadline)
+                                HStack(spacing: -6) {
+                                    if viewModel.activeUsers.count != 0 {
+                                        ForEach(viewModel.activeUsers.prefix(3), id: \.self) { user in
+
+                                            RemoteImage(url: URL(string: user.user.image?.photoURL ?? ""))
+                                                .frame(width: 24, height: 24)
+                                                .clipShape(Circle())
+                                                .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                                        }
+                                    }
+                                }
+                                Text(viewModel.activeUsernames)
                                     .foregroundColor(.gray)
+                                    .font(.caption)
                             }
                         }
-                    }
+                    }.padding(.top, 6)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Últimos posts")
@@ -189,18 +254,58 @@ struct PlaceView: View {
                                                 self.selectedUserOfPost = post.userPost
                                             }
                                         ) {
-                                            AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            } placeholder: {
-                                                Rectangle()
-                                                    .fill(Color.gray.opacity(0.2))
-                                                    .shimmering()
+                                            ZStack(alignment: .bottomLeading) {
+                                                // Imagem principal (base)
+                                                AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
+                                                    image
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                } placeholder: {
+                                                    Rectangle()
+                                                        .fill(Color.gray.opacity(0.2))
+                                                        .shimmering()
+                                                }
+                                                .frame(width: 150, height: 200)
+                                                .clipped()
+                                                .cornerRadius(8)
+
+                                                // Sombra gradiente na parte inferior
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [Color.black, Color.clear]),
+                                                    startPoint: .bottom,
+                                                    endPoint: .top
+                                                )
+                                                .frame(height: 70) // altura da sombra
+                                                .cornerRadius(8, corners: [.bottomLeft, .bottomRight])
+
+                                                HStack(alignment: .top, spacing: 5) {
+                                                    AsyncImage(url: URL(string: post.userPost.image?.photoURL ?? "")) { image in
+                                                        image
+                                                            .resizable()
+                                                            .scaledToFill()
+                                                    } placeholder: {
+                                                        Circle()
+                                                            .fill(Color.gray.opacity(0.3))
+                                                    }
+                                                    .frame(width: 24, height: 24)
+                                                    .clipShape(Circle())
+                                                    .overlay(
+                                                        Circle().stroke(Color.white, lineWidth: 0.5)
+                                                    )
+
+
+                                                    VStack(alignment: .leading) {
+                                                        Text("@\(post.userPost.username)")
+                                                            .font(.caption.bold())
+                                                        Text("\(post.createdAt.timeAgoSinceDate)")
+                                                            .font(.caption2)
+                                                            .foregroundColor(.gray)
+                                                    }
+
+                                                }
+                                                .padding(.leading, 6)
+                                                .padding(.bottom, 6)
                                             }
-                                            .frame(width: 120, height: 160)
-                                            .clipped()
-                                            .cornerRadius(8)
                                         }
 
                                     }
@@ -210,18 +315,30 @@ struct PlaceView: View {
                         Spacer().frame(height: 20)
                     }
                     .background(Color.FVColor.backgroundDark)
+                    .padding(.top, 6)
                 }
                 .padding(.horizontal)
                 .background(Color.FVColor.backgroundDark)
             }
             .background(Color.FVColor.backgroundDark.ignoresSafeArea())
+            .blurLoading(viewModel.isFetchingActiveUsers)
+        }
+        .onAppear {
+            if location.placeIsOpen {
+                viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
+            }
+        }
+        .onChange(of: checkinFlow.shoudRequestActiveUsers) { oldValue, newValue in
+            if newValue, location.placeIsOpen {
+                viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
+            }
         }
         .background(Color.FVColor.backgroundDark.ignoresSafeArea())
         .navigationDestination(item: $selectedUserOfPost) { userModel in
             ProfileView(userModel: userModel)
         }
         .fullScreenCover(isPresented: $checkinFlow.showFirst) {
-            CheckInViewFirstStepView(location: location)
+            CheckInViewFirstStepView(placeViewModel: viewModel, location: location)
                 .environmentObject(checkinFlow)
         }
         .navigationBarBackButtonHidden()
@@ -231,6 +348,28 @@ struct PlaceView: View {
                     .zIndex(1)
             }
         }
+        .overlay(
+            VStack {
+                if showTooltip {
+                    withAnimation {
+                        TooltipView(
+                            text: "Ao se afastar do local, será feito o checkout.",
+                            onClose: { withAnimation { showTooltip = false } }
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1)
+                        .padding(.top, 12)
+                        .padding(.horizontal)
+                    }
+                }
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        )
+    }
+
+    private func currentUserHasCheckedIn() -> Bool {
+        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? "")
     }
 }
 
@@ -240,12 +379,67 @@ class CheckinViewFlow: ObservableObject {
     @Published var showThird = false
     @Published var showFourth = false
     @Published var showSuccess = false
+    @Published var showError = false
+    @Published var shoudRequestActiveUsers = false
 
     func closeAll() {
         showFourth = false
         showSuccess = false
+        showError = false
         showThird = false
         showSecond = false
         showFirst = false
+    }
+}
+
+import SwiftUI
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct TooltipView: View {
+    let text: String
+    let onClose: () -> Void
+
+    var body: some View {
+        HStack {
+            Spacer()
+            Text(text)
+                .font(.caption)
+                .foregroundColor(.white)
+            Spacer()
+            Button(action: onClose) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding()
+        .background(Color(.black))
+        .cornerRadius(20)
+        .shadow(radius: 5)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                withAnimation {
+                    onClose()
+                }
+            }
+        }
     }
 }

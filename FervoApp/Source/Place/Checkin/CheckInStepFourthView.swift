@@ -44,7 +44,11 @@ struct CheckInStepFourthView: View {
         }
         .navigationBarBackButtonHidden()
         .fullScreenCover(isPresented: $flow.showSuccess) {
-           CheckinSuccessView()
+           CheckinResultView()
+                .environmentObject(flow)
+        }
+        .fullScreenCover(isPresented: $flow.showError) {
+           CheckinResultView()
                 .environmentObject(flow)
         }
     }
@@ -100,7 +104,17 @@ struct CheckInStepFourthView: View {
             ])
 
             Button(action: {
-                flow.showSuccess = true
+                placeViewModel.makeCheckin(
+                    placeID: location.fixedLocation.placeId,
+                    lat: location.fixedLocation.location.lat, // TODO - Para teste, retirar e passar a localizacao do usuario.
+                    lng: location.fixedLocation.location.lng
+                ) { success in
+                    if success {
+                        flow.showSuccess = true
+                    } else {
+                        flow.showError = true
+                    }
+                }
             }) {
                 Text("Finalizar check-in")
                     .foregroundColor(.white)
@@ -114,41 +128,3 @@ struct CheckInStepFourthView: View {
         }
     }
 }
-
-struct MovementOption: Identifiable {
-    let id = UUID()
-    let title: String
-    let emoji: String
-}
-
-struct CheckboxListView: View {
-    @Binding var selectedOption: CrowdLevel
-
-    var body: some View {
-        VStack(spacing: 12) {
-            ForEach(CrowdLevel.allCases, id: \.self) { option in
-                Button(action: {
-                    selectedOption = option
-                }) {
-                    HStack {
-                        Image(systemName: selectedOption == option ? "checkmark.square.fill" : "square")
-                            .foregroundColor(selectedOption == option ? .fvBackground : .white)
-
-                        Text(option.title)
-                            .foregroundColor(.white)
-                            .fontWeight(.semibold)
-
-                        option.emojiView
-
-                        Spacer()
-                    }
-                    .padding(12)
-                    .background(selectedOption == option ? .blue : Color.blue.opacity(0.5))
-                    .cornerRadius(20)
-                }
-            }
-        }
-        .padding()
-    }
-}
-

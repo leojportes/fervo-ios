@@ -77,9 +77,7 @@ struct HomeView: View {
             .navigationBarBackButtonHidden()
             .onAppear {
                 DispatchQueue.main.async {
-                    if viewModel.locationsWithPosts.isEmpty {
-                        viewModel.fetch()
-                    }
+                    viewModel.fetch()
                 }
                 customizeNavigationBar()
             }

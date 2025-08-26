@@ -52,8 +52,8 @@ struct LoginView: View {
                     // Mensagem de erro
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .font(.caption.bold())
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }

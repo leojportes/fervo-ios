@@ -47,26 +47,50 @@ extension View {
 
 struct BlurLoading: ViewModifier {
     var isActive: Bool
+    var showProgressView: Bool = true
+    @State private var internalActive: Bool = false
 
     func body(content: Content) -> some View {
-        if isActive {
-            content
-                .blur(radius: 4) // 👈 Aplica o blur
-                .overlay(
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.5)
-                        .font(.caption)
-                )
-                .allowsHitTesting(false) // 👈 Bloqueia toques enquanto está no loading
-        } else {
-            content
+        Group {
+            if internalActive {
+                if showProgressView {
+                    content
+                        .blur(radius: 4)
+                        .overlay(
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(1.5)
+                                .font(.caption)
+                        )
+                        .allowsHitTesting(false)
+                } else {
+                    content
+                        .blur(radius: 8)
+                        .allowsHitTesting(false)
+                }
+            } else {
+                content
+            }
+        }
+        .onChange(of: isActive) { newValue in
+            if newValue {
+                // ativa imediatamente
+                internalActive = true
+            } else {
+                // mantém pelo menos 2 segundos
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    internalActive = false
+                }
+            }
+        }
+        .onAppear {
+            if isActive { internalActive = true }
         }
     }
 }
 
 extension View {
-    func blurLoading(_ isActive: Bool = true) -> some View {
-        self.modifier(BlurLoading(isActive: isActive))
+    func blurLoading(_ isActive: Bool = true, _ isShowingProgressView: Bool = true) -> some View {
+        self.modifier(BlurLoading(isActive: isActive, showProgressView: isShowingProgressView))
     }
 }

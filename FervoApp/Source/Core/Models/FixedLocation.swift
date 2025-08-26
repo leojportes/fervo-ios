@@ -53,6 +53,69 @@ struct FixedLocation: Codable, Equatable, Hashable, Identifiable {
         }
         return String(repeating: "$", count: level)
     }
+
+    func timeUntilNextOpen() -> String? {
+        guard let weekdayText = weekdayText else { return nil }
+        let calendar = Calendar.current
+        let now = Date()
+
+        // Mapear Apple weekday (1 = Sunday ... 7 = Saturday) para índice do array (segunda = 0)
+        let weekdayMap = [1:6, 2:0, 3:1, 4:2, 5:3, 6:4, 7:5]
+        let todayIndex = weekdayMap[calendar.component(.weekday, from: now)]!
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        dateFormatter.timeZone = TimeZone.current
+
+        // Procurar pelo próximo dia que abre
+        for offset in 0..<7 {
+            let dayIndex = (todayIndex + offset) % 7
+            let text = weekdayText[dayIndex]
+            let parts = text.components(separatedBy: ": ")
+            guard parts.count == 2 else { continue }
+
+            let hoursPart = parts[1].trimmingCharacters(in: .whitespaces)
+            if hoursPart.lowercased() == "fechado" { continue }
+
+            // Pegar horário de abertura (primeira parte do range)
+            let timeRange = hoursPart.components(separatedBy: "–")
+            guard let openingTimeString = timeRange.first?.trimmingCharacters(in: .whitespaces),
+                  let openingTime = dateFormatter.date(from: openingTimeString) else { continue }
+
+            // Criar Date de abertura
+            var openingComponents = calendar.dateComponents([.year, .month, .day], from: now)
+            let timeComponents = calendar.dateComponents([.hour, .minute], from: openingTime)
+            openingComponents.hour = timeComponents.hour
+            openingComponents.minute = timeComponents.minute
+
+            // Ajustar o dia se não for hoje
+            if offset > 0 {
+                openingComponents.day! += offset
+            }
+
+            guard let openingDate = calendar.date(from: openingComponents) else { continue }
+
+            let interval = Int(openingDate.timeIntervalSince(now))
+            if interval > 0 {
+                // Formatar resultado
+                let days = interval / (60*60*24)
+                let hours = (interval % (60*60*24)) / 3600
+                let minutes = (interval % 3600) / 60
+
+                if days > 0 {
+                    return "Abre em \(days) dia" + (days > 1 ? "s" : "")
+                } else if hours > 0 {
+                    return "Abre em \(hours)h\(minutes + 1)min"
+                } else {
+                    return "Abre em \(minutes + 1)min"
+                }
+            }
+        }
+
+        return nil // Nunca abre
+    }
+
+
 }
 
 struct Review: Codable, Equatable, Hashable {

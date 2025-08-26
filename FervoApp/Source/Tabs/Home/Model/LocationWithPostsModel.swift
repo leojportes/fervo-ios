@@ -9,7 +9,7 @@ import Foundation
 
 struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
     var id: String {
-        return "\(fixedLocation.name)-\(fixedLocation.city)"
+        "\(fixedLocation.name)-\(fixedLocation.city)-\(fixedLocation.weekdayText?.hashValue ?? 0)-\(fixedLocation.photoURL.hashValue)"
     }
 
     let fixedLocation: FixedLocation
@@ -50,7 +50,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
             if let range = todayLine.range(of: ":") {
                 let timePart = todayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
 
-                if timePart.lowercased() != "fechado" {
+                if placeIsOpen {
                     return timePart
                 }
             }
