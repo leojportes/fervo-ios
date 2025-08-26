@@ -61,3 +61,7 @@ struct CheckinSuccessView: View {
     }
 
 }
+
+#Preview {
+    CheckinSuccessView()
+}

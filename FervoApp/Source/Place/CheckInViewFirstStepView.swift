@@ -129,6 +129,8 @@ struct CheckItem: View {
     }
 }
 
+
+
 //
 //struct CheckInViewStepOneView_Previews: PreviewProvider {
 //    static var previews: some View {
