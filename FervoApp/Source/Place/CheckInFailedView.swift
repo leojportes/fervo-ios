@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CheckInFailedView: View {
     
+    
     var body: some View {
         ZStack {
             LinearGradient(
@@ -17,7 +18,8 @@ struct CheckInFailedView: View {
             .edgesIgnoringSafeArea(.all)
             
             VStack{
-                
+             
+                //Header
                 HStack{
                     Button {
                         // ação aqui
@@ -41,6 +43,27 @@ struct CheckInFailedView: View {
                     .frame(height: 1)
                     .background(Color.white)
                     .opacity(0.4)
+                
+              
+                Text("Check-in")
+                    .font(.system(size: 38, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.top, 25)
+                
+                VStack{
+                    Text("Você ainda não chegou no \("Don't Tell Mama"/* Ajustar com o fixedLocation*/)")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.bottom, 1)
+                    
+                    Text("Ao entrar, responda e ganhe pontos")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .opacity(0.6)
+                }
+                .padding(.top, 50)
+                
+                
                 
                 
             }
