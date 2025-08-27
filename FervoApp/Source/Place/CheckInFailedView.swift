@@ -27,17 +27,19 @@ struct CheckInFailedView: View {
                         Image(systemName: "chevron.backward")
                             .foregroundStyle(.white)
                             .font(.title)
+                        .padding(.trailing, 10)
+                        
+                        Text("Don't Tell Mama") //Ajustar com o fixedLocation
+                            .foregroundStyle(.white)
+                            .font(.title2)
+                            .fontWeight(.semibold)
                     }
-                    .padding(.trailing, 10)
                     
-                    Text("Don't Tell Mama") //Ajustar com o fixedLocation
-                        .foregroundStyle(.white)
-                        .font(.title2)
-                        .fontWeight(.semibold)
 
                     Spacer()
                 }
-                .padding()
+                .padding(.bottom, 5)
+                .padding(.leading, 17)
                 
                 Divider()
                     .frame(height: 1)
@@ -46,9 +48,9 @@ struct CheckInFailedView: View {
                 
               
                 Text("Check-in")
-                    .font(.system(size: 38, weight: .bold))
+                    .font(.system(size: 33, weight: .bold))
                     .foregroundStyle(.white)
-                    .padding(.top, 25)
+                    .padding(.top, 28)
                 
                 VStack{
                     Text("Você ainda não chegou no \("Don't Tell Mama"/* Ajustar com o fixedLocation*/)")
@@ -61,9 +63,36 @@ struct CheckInFailedView: View {
                         .foregroundStyle(.white)
                         .opacity(0.6)
                 }
-                .padding(.top, 50)
+                .padding(.top, 60)
                 
                 
+                // Image(........)
+                
+                Spacer()
+                
+                VStack{
+                    Text("Aproxime-se do local correto e realize o check-in \n novamente.")
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.white)
+                        .opacity(0.7)
+                        .font(.system(size: 15, weight: .semibold))
+                        .padding(.bottom, 10)
+                    
+                    Button {
+                        // action
+                    } label: {
+                        Text("Voltar")
+                            .frame(width: 340, height: 50, alignment: .center)
+                            .background(Color.blue.opacity(0.6))
+                            .foregroundStyle(.white)
+                            .cornerRadius(10)
+                            .font(.title3)
+                            .bold()
+                            
+                    }
+
+                }
+                .padding()
                 
                 
             }
