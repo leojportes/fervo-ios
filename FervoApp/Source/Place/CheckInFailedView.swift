@@ -78,7 +78,6 @@ struct CheckInFailedView: View {
                 }
                 .padding()
             }
-
         }
     }
 }
