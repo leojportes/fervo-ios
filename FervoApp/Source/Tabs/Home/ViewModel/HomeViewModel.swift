@@ -13,6 +13,13 @@ class HomeViewModel: ObservableObject {
     @Published var locationsWithPosts: [LocationWithPosts] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var isFetchingActiveUsers: Bool = false
+    @Published var activeUsers: [CheckinActiveUserResponse] = []
+    
+    func currentUserHasActiveCheckin(firebaseUid currentUserFirebaseId: String) -> Bool {
+        activeUsers.filter { $0.user.firebaseUid == currentUserFirebaseId }.count != 0
+    }
+
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -138,6 +145,40 @@ class HomeViewModel: ObservableObject {
                 }
             } else {
                 completion(.failure(NSError(domain: "Erro ao \(isLike ? "curtir" : "descurtir"). Status: \(httpResponse.statusCode)", code: httpResponse.statusCode)))
+            }
+        }.resume()
+    }
+
+    func fetchActiveUsers(placeID: String) {
+        self.isFetchingActiveUsers = true
+        guard let url = URL(string: "\(baseIPForTest)/active-users?place_id=\(placeID)") else {
+            print("URL inválida")
+            self.isFetchingActiveUsers = false
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Erro ao buscar usuários ativos:", error)
+                self.isFetchingActiveUsers = false
+                return
+            }
+
+            guard let data = data else {
+                print("Nenhum dado retornado")
+                self.isFetchingActiveUsers = false
+                return
+            }
+
+            do {
+                let users = try JSONDecoder().decode([CheckinActiveUserResponse].self, from: data)
+                DispatchQueue.main.async {
+                    self.activeUsers = users
+                    self.isFetchingActiveUsers = false
+                }
+            } catch {
+                print("Erro ao decodificar JSON:", error)
+                self.isFetchingActiveUsers = false
             }
         }.resume()
     }

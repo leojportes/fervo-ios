@@ -16,6 +16,7 @@ struct PlaceView: View {
     @StateObject var checkinFlow = CheckinViewFlow()
     @StateObject private var viewModel: PlaceViewModel
     @State private var showTooltip = false
+    @StateObject private var locationManager = LocationManager()
 
     init(location: LocationWithPosts, userSession: UserSession) {
         _location = State(initialValue: location)
@@ -54,7 +55,7 @@ struct PlaceView: View {
                 .frame(height: 50)
             }
 
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
                         AsyncImage(url: URL(string: location.fixedLocation.photoURL)) { image in
@@ -140,7 +141,21 @@ struct PlaceView: View {
                     if !viewModel.isFetchingActiveUsers {
                         if !currentUserHasCheckedIn() {
                             Button(action: {
-                                checkinFlow.showFirst = true
+                                guard let lat = locationManager.latitude,
+                                      let lng = locationManager.longitude else { return }
+
+                                if viewModel.isWithin10Meters(
+                                    userLat: lat,
+                                    userLng: lng,
+                                    placeLat: location.fixedLocation.location.lat,
+                                    placeLng: location.fixedLocation.location.lng
+                                ) {
+                                    checkinFlow.showFirst = true
+                                } else {
+                                    checkinFlow.showError = true
+                                }
+
+
                             }) {
                                 VStack {
                                     Text("Check-in")
@@ -159,7 +174,7 @@ struct PlaceView: View {
                                         }
                                     }
                                 }
-                                .frame(maxWidth: 100)
+                                .frame(maxWidth: 170)
                                 .padding()
                                 .background(location.placeIsOpen ? Color.blue : Color.blue.opacity(0.3))
                                 .cornerRadius(15)
@@ -211,30 +226,43 @@ struct PlaceView: View {
                         }
 
                         MapContentView(
+                            userSession: userSession,
                             initialCoordinate: .init(latitude: location.fixedLocation.location.lat, longitude: location.fixedLocation.location.lng),
                             span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002),
-                            users: location.placeIsOpen ? viewModel.activeUsers : []
+                            users: location.placeIsOpen ? viewModel.activeUsers : [],
+                            location: location.fixedLocation,
+                            locationManager: locationManager
                         )
                         .frame(height: 200)
                         .cornerRadius(15)
 
-                        if location.placeIsOpen {
-                            HStack {
-                                Spacer()
-                                HStack(spacing: -6) {
-                                    if viewModel.activeUsers.count != 0 {
-                                        ForEach(viewModel.activeUsers.prefix(3), id: \.self) { user in
+                        VStack(spacing: 10) {
+                            if location.placeIsOpen {
+                                if viewModel.activeUsers.count > 0 {
+                                    HStack(spacing: 4) {
+                                        HStack(spacing: -6) {
+                                            if viewModel.activeUsers.count != 0 {
+                                                ForEach(viewModel.activeUsers.prefix(3), id: \.self) { user in
 
-                                            RemoteImage(url: URL(string: user.user.image?.photoURL ?? ""))
-                                                .frame(width: 24, height: 24)
-                                                .clipShape(Circle())
-                                                .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                                                    RemoteImage(url: URL(string: user.user.image?.photoURL ?? ""))
+                                                        .frame(width: 24, height: 24)
+                                                        .clipShape(Circle())
+                                                        .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                                                }
+                                            }
                                         }
+                                        .padding(.leading, 6)
+                                        Text(viewModel.activeUsernames)
+                                            .foregroundColor(.gray)
+                                            .font(.caption)
+                                        Spacer()
                                     }
                                 }
-                                Text(viewModel.activeUsernames)
-                                    .foregroundColor(.gray)
-                                    .font(.caption)
+                            }
+                            HStack(spacing: 4) {
+                                TransportDarkButton(service: .uber, destination: .coordinates(lat: location.fixedLocation.location.lat, lng: location.fixedLocation.location.lng, name: location.fixedLocation.name), style: .dark)
+                                TransportDarkButton(service: .google, destination: .address(location.fixedLocation.name), style: .light)
+                                Spacer()
                             }
                         }
                     }.padding(.top, 6)
@@ -247,7 +275,7 @@ struct PlaceView: View {
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
-                                if let posts = location.posts {
+                                if let posts = location.posts, posts.count > 0 {
                                     ForEach(posts) { post in
                                         Button(
                                             action: {
@@ -309,7 +337,12 @@ struct PlaceView: View {
                                         }
 
                                     }
+                                } else {
+                                    Text("Nenhuma postagem até agora.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
                                 }
+
                             }
                         }
                         Spacer().frame(height: 20)
@@ -326,6 +359,7 @@ struct PlaceView: View {
         .onAppear {
             if location.placeIsOpen {
                 viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
+                locationManager.requestAuthorization()
             }
         }
         .onChange(of: checkinFlow.shoudRequestActiveUsers) { oldValue, newValue in
@@ -340,6 +374,19 @@ struct PlaceView: View {
         .fullScreenCover(isPresented: $checkinFlow.showFirst) {
             CheckInViewFirstStepView(placeViewModel: viewModel, location: location)
                 .environmentObject(checkinFlow)
+        }
+        .fullScreenCover(isPresented: $checkinFlow.showError) {
+            Group {
+                if let lat = locationManager.latitude,
+                   let lng = locationManager.longitude {
+                    CheckinResultView(
+                        errorMessage: "Você está longe do local. \(viewModel.formattedDistanceFrom(userLat: lat, userLng: lng, placeLat: location.fixedLocation.location.lat, placeLng: location.fixedLocation.location.lng)) de distância."
+                    )
+                    .environmentObject(checkinFlow)
+                } else {
+                    CheckinResultView(errorMessage: "")
+                }
+            }
         }
         .navigationBarBackButtonHidden()
         .overlay {
@@ -364,82 +411,11 @@ struct PlaceView: View {
                 }
                 Spacer()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         )
     }
 
     private func currentUserHasCheckedIn() -> Bool {
         viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? "")
-    }
-}
-
-class CheckinViewFlow: ObservableObject {
-    @Published var showFirst = false
-    @Published var showSecond = false
-    @Published var showThird = false
-    @Published var showFourth = false
-    @Published var showSuccess = false
-    @Published var showError = false
-    @Published var shoudRequestActiveUsers = false
-
-    func closeAll() {
-        showFourth = false
-        showSuccess = false
-        showError = false
-        showThird = false
-        showSecond = false
-        showFirst = false
-    }
-}
-
-import SwiftUI
-
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
-    }
-}
-
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCorner(radius: radius, corners: corners))
-    }
-}
-
-struct TooltipView: View {
-    let text: String
-    let onClose: () -> Void
-
-    var body: some View {
-        HStack {
-            Spacer()
-            Text(text)
-                .font(.caption)
-                .foregroundColor(.white)
-            Spacer()
-            Button(action: onClose) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.gray)
-            }
-        }
-        .padding()
-        .background(Color(.black))
-        .cornerRadius(20)
-        .shadow(radius: 5)
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-                withAnimation {
-                    onClose()
-                }
-            }
-        }
     }
 }

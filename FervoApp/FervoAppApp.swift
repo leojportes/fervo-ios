@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MapKit
 
 @main
 struct FervoAppApp: App {
@@ -40,6 +41,7 @@ struct FervoAppApp: App {
 struct RootView: View {
     @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var loginViewModel: LoginViewModel
+    let manager = CLLocationManager()
 
     @StateObject private var homeViewModel = HomeViewModel()  // ADICIONE AQUI
 
@@ -54,11 +56,17 @@ struct RootView: View {
                 DashboardTabView()
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
-                    .environmentObject(homeViewModel) // INJETANDO AQUI
+                    .environmentObject(homeViewModel)
+                    .onAppear {
+                        manager.requestWhenInUseAuthorization()
+                    }
             } else {
                 LoginView()
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
+                    .onAppear {
+                        manager.requestWhenInUseAuthorization()
+                    }
             }
         }
         .animation(.easeInOut, value: loginViewModel.isAuthenticated)

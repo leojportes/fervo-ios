@@ -151,4 +151,4 @@ final class LoginViewModel: ObservableObject {
     }
 }
 
-let baseIPForTest = "http://localhost:8080"
+let baseIPForTest = "https://400f47c2c7a9.ngrok-free.app"

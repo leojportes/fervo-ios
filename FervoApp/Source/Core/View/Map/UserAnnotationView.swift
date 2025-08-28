@@ -19,7 +19,6 @@ class UserAnnotation: NSObject, MKAnnotation {
     }
 }
 
-
 class UserAnnotationView: MKAnnotationView {
     static let reuseIdentifier = "UserAnnotationView"
 

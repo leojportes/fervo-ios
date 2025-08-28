@@ -35,7 +35,7 @@ struct HomeView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
                 headerView
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     VStack {
                         searchTappedView
                         Divider()
@@ -83,12 +83,19 @@ struct HomeView: View {
             }
         }
     }
+
+    private func currentUserHasCheckedIn() -> Bool {
+        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? "")
+    }
 }
 
 // MARK: - Subviews
 private extension HomeView {
     var headerView: some View {
         HStack {
+            if currentUserHasCheckedIn() {
+                
+            }
             Spacer()
 
             Button(action: handleLogout) {

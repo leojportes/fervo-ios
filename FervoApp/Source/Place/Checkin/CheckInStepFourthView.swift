@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct CheckInStepFourthView: View {
     @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
     @StateObject var placeViewModel: PlaceViewModel
     @State var location: LocationWithPosts
+    @StateObject private var locationManager = LocationManager()
 
     var body: some View {
         NavigationView {
@@ -42,13 +44,16 @@ struct CheckInStepFourthView: View {
             }
             .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
         }
+        .onAppear {
+            locationManager.requestAuthorization()
+        }
         .navigationBarBackButtonHidden()
         .fullScreenCover(isPresented: $flow.showSuccess) {
-           CheckinResultView()
+            CheckinResultView(errorMessage: "")
                 .environmentObject(flow)
         }
         .fullScreenCover(isPresented: $flow.showError) {
-           CheckinResultView()
+            CheckinResultView(errorMessage: "")
                 .environmentObject(flow)
         }
     }
@@ -104,14 +109,21 @@ struct CheckInStepFourthView: View {
             ])
 
             Button(action: {
+                guard let lat = locationManager.latitude,
+                      let lng = locationManager.longitude else {
+                    flow.showError = true
+                    return
+                }
+
                 placeViewModel.makeCheckin(
                     placeID: location.fixedLocation.placeId,
-                    lat: location.fixedLocation.location.lat, // TODO - Para teste, retirar e passar a localizacao do usuario.
-                    lng: location.fixedLocation.location.lng
-                ) { success in
-                    if success {
+                    lat: lat,
+                    lng: lng
+                ) { result in
+                    switch result {
+                    case .success:
                         flow.showSuccess = true
-                    } else {
+                    case .tooFar, .failure, .alreadyCheckedIn:
                         flow.showError = true
                     }
                 }
@@ -125,6 +137,8 @@ struct CheckInStepFourthView: View {
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
+
+
         }
     }
 }

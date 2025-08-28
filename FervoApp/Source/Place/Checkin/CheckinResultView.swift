@@ -12,6 +12,7 @@ struct CheckinResultView: View {
     @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
     @State var activeButton: Bool = false
+    let errorMessage: String
 
     var body: some View {
         NavigationView {
@@ -85,15 +86,19 @@ struct CheckinResultView: View {
             VStack(spacing: 10) {
                 Text("Oops!")
                     .foregroundColor(.white)
-                    .font(.title3.bold())
+                    .font(.title2.bold())
                     .multilineTextAlignment(.center)
-                Text("Aconteceu algum problema ao realizar o checkin")
+                Text("Não foi possível realizar o checkin!")
                     .foregroundColor(.white)
                     .font(.headline.weight(.regular))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
+                Text(errorMessage)
+                    .foregroundColor(.white)
+                    .font(.subheadline.weight(.regular))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
             }
-
 
             LottieView(animationName: "error_animation", loopMode: .playOnce)
                 .frame(width: 250, height: 250)

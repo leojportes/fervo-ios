@@ -161,8 +161,7 @@ struct MusicStyleSelectorView: View {
 
                         Text(style.name)
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color.blue)
-                            .shadow(color: Color.purple, radius: 5, x: 0, y: 0)
+                            .foregroundColor(Color.white)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .minimumScaleFactor(0.5)

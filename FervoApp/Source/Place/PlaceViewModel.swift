@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Lottie
+import CoreLocation
 
 class PlaceViewModel: ObservableObject {
     @Published var price: Double = 0
@@ -14,7 +15,7 @@ class PlaceViewModel: ObservableObject {
     @Published var musicalTaste: [String] = []
     @Published var crowdLevel: CrowdLevel = .medium
     @Published var activeUsers: [CheckinActiveUserResponse] = []
-
+    @Published var errorTooFar: String?
     @Published var isFetchingActiveUsers: Bool = false
 
     let firebaseUid: String
@@ -23,50 +24,20 @@ class PlaceViewModel: ObservableObject {
         self.firebaseUid = firebaseUid
     }
 
-    var activeUsernames: String {
-        let users = self.activeUsers
-        let firstTwoUsers = users.prefix(2)
-
-        // Criar a string com os nomes dos primeiros dois
-        let names = firstTwoUsers.map { "@\($0.user.username)" }.joined(separator: ", ")
-
-        // Se houver mais de dois usuários, adiciona "e outras pessoas"
-        switch users.count {
-        case 1: return "\(names) no rolê."
-        case 2: return "\(names) no rolê."
-        case 3: return "\(names)\ne outra pessoa."
-        case 4: return "\(names)\ne outras 2 pessoas."
-        default: return "\(names)\ne outras \(self.activeUsers.count - 2) pessoas."
-        }
-    }
-
-    var peoplesNowDescription: String {
-        switch activeUsers.count {
-        case 0: return "0 pessoas agora"
-        case 1: return "1 pessoa agora"
-        default: return "\(activeUsers.count) pessoas agora"
-        }
-    }
-
-    func currentUserHasActiveCheckin(firebaseUid currentUserFirebaseId: String) -> Bool {
-        activeUsers.filter { $0.user.firebaseUid == currentUserFirebaseId }.count != 0
-    }
-
     func makeCheckin(
         placeID: String,
         lat: Double,
         lng: Double,
-        completion: @escaping (Bool) -> Void
+        completion: @escaping (CheckinResult) -> Void
     ) {
         let musicParam = musicalTaste.joined(separator: ",")
 
-        guard var urlComponents = URLComponents(string: "http://localhost:8080/checkin") else {
+        guard var urlComponents = URLComponents(string: "\(baseIPForTest)/checkin") else {
             print("URL inválida")
-            completion(false)
+            completion(.failure)
             return
         }
 
-        // Query params
         urlComponents.queryItems = [
             URLQueryItem(name: "accepted_terms", value: acceptedTerms.description),
             URLQueryItem(name: "price", value: String(price)),
@@ -76,11 +47,10 @@ class PlaceViewModel: ObservableObject {
 
         guard let url = urlComponents.url else {
             print("Falha ao montar URL")
-            completion(false)
+            completion(.failure)
             return
         }
 
-        // Body JSON
         let body: [String: Any] = [
             "firebase_uid": firebaseUid,
             "place_id": placeID,
@@ -96,40 +66,62 @@ class PlaceViewModel: ObservableObject {
             request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
         } catch {
             print("Erro ao montar body JSON:", error)
-            completion(false)
+            completion(.failure)
             return
         }
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 print("Erro ao fazer checkin:", error)
-                DispatchQueue.main.async { completion(false) }
+                DispatchQueue.main.async { completion(.failure) }
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("Resposta inválida")
-                DispatchQueue.main.async { completion(false) }
+                DispatchQueue.main.async { completion(.failure) }
                 return
             }
 
-            if (200..<300).contains(httpResponse.statusCode) {
-                print("✅ Check-in realizado com sucesso")
-                DispatchQueue.main.async { completion(true) }
+            if (200..<300).contains(httpResponse.statusCode),
+               let data = data {
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let status = json["status"] as? String {
+
+                        switch status {
+                        case "checked_in":
+                            print("✅ Check-in realizado com sucesso")
+                            DispatchQueue.main.async { completion(.success) }
+                        case "too_far_to_checkin":
+                            print("⚠️ Usuário está muito longe para check-in")
+                            DispatchQueue.main.async { completion(.tooFar) }
+                        case "already_checked_in":
+                            print("⚠️ Usuário está muito longe para check-in")
+                            DispatchQueue.main.async { completion(.alreadyCheckedIn) }
+
+                        default:
+                            print("❌ Status desconhecido: \(status)")
+                            DispatchQueue.main.async { completion(.failure) }
+                        }
+                    } else {
+                        print("JSON inválido")
+                        DispatchQueue.main.async { completion(.failure) }
+                    }
+                } catch {
+                    print("Erro ao decodificar JSON:", error)
+                    DispatchQueue.main.async { completion(.failure) }
+                }
             } else {
                 print("❌ Falha no check-in. Status code: \(httpResponse.statusCode)")
-                if let data = data,
-                   let errString = String(data: data, encoding: .utf8) {
-                    print("Detalhe erro:", errString)
-                }
-                DispatchQueue.main.async { completion(false) }
+                DispatchQueue.main.async { completion(.failure) }
             }
         }.resume()
     }
 
     func fetchActiveUsers(placeID: String) {
         self.isFetchingActiveUsers = true
-        guard let url = URL(string: "http://localhost:8080/active-users?place_id=\(placeID)") else {
+        guard let url = URL(string: "\(baseIPForTest)/active-users?place_id=\(placeID)") else {
             print("URL inválida")
             self.isFetchingActiveUsers = false
             return
@@ -160,62 +152,56 @@ class PlaceViewModel: ObservableObject {
             }
         }.resume()
     }
-}
 
-enum CrowdLevel: String, CaseIterable, Identifiable {
-    case low, medium, hard
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .low: return "Pouco movimentado"
-        case .medium: return "Movimentado"
-        case .hard: return "Muito movimentado"
+    var activeUsernames: String {
+        let users = self.activeUsers
+        let firstTwoUsers = users.prefix(2)
+        let names = firstTwoUsers.map { "@\($0.user.username)" }.joined(separator: ", ")
+        switch users.count {
+        case 1: return "\(names) no rolê."
+        case 2: return "\(names) no rolê."
+        case 3: return "\(names)\ne outra pessoa."
+        case 4: return "\(names)\ne outras 2 pessoas."
+        case 5...:
+            return "\(names)\ne outras \(self.activeUsers.count - 2) pessoas."
+        default:
+            return ""
         }
     }
 
-    private var lottieFilename: String {
-        switch self {
-        case .low: return "fire_icon"
-        case .medium: return "fire_icon"
-        case .hard: return "fire_icon"
+    var peoplesNowDescription: String {
+        switch activeUsers.count {
+        case 0: return "0 pessoas agora"
+        case 1: return "1 pessoa agora"
+        default: return "\(activeUsers.count) pessoas agora"
         }
     }
 
-    @ViewBuilder
-    var emojiView: some View {
-        VStack {
-            switch self {
-            case .low:
-                HStack(spacing: 0) {
-                    LottieView(animationName: lottieFilename)
-                        .frame(width: frameSize, height: frameSize)
-                }
-            case .medium:
-                HStack(spacing: 0) {
-                    LottieView(animationName: lottieFilename)
-                        .frame(width: frameSize, height: frameSize)
-                    LottieView(animationName: lottieFilename)
-                        .frame(width: frameSize, height: frameSize)
-                }
-            case .hard:
-                HStack(spacing: 0) {
-                    LottieView(animationName: lottieFilename)
-                        .frame(width: frameSize, height: frameSize)
-                    LottieView(animationName: lottieFilename)
-                        .frame(width: frameSize, height: frameSize)
-                    LottieView(animationName: lottieFilename)
-                        .frame(width: frameSize, height: frameSize)
-                }
-            }
-        }.padding(.bottom, 10)
+    func currentUserHasActiveCheckin(firebaseUid currentUserFirebaseId: String) -> Bool {
+        activeUsers.filter { $0.user.firebaseUid == currentUserFirebaseId }.count != 0
     }
 
-    private var frameSize: CGFloat {
-        switch self {
-        case .low: return 26
-        case .medium: return 26
-        case .hard: return 26
+    func isWithin10Meters(userLat: Double, userLng: Double, placeLat: Double, placeLng: Double) -> Bool {
+        let userLocation = CLLocation(latitude: userLat, longitude: userLng)
+        let placeLocation = CLLocation(latitude: placeLat, longitude: placeLng)
+
+        let distance = userLocation.distance(from: placeLocation)
+
+        return distance <= 10
+    }
+
+    func formattedDistanceFrom(userLat: Double, userLng: Double, placeLat: Double, placeLng: Double) -> String {
+        let userLocation = CLLocation(latitude: userLat, longitude: userLng)
+        let placeLocation = CLLocation(latitude: placeLat, longitude: placeLng)
+
+        let distance = userLocation.distance(from: placeLocation)
+
+        if distance < 1000 {
+            return "\(Int(distance)) metros"
+        } else {
+            let km = distance / 1000
+            return "\(String(format: "%.1f", km)) km"
         }
     }
+
 }
