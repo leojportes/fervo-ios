@@ -17,6 +17,7 @@ final class ProfileViewModel: ObservableObject {
     @Published var hasConnection: Bool = false
     @Published var hasPendingConnections: Bool = false
     @Published var pendingConnectionId: String? = nil
+    @Published var isLoadingCheckConnection: Bool = false
 
 
     private var cancellables = Set<AnyCancellable>()
@@ -93,6 +94,7 @@ final class ProfileViewModel: ObservableObject {
     }
 
     func checkConnection(with otherUserUID: String, completion: ((Bool) -> Void)? = nil) {
+        self.isLoadingCheckConnection = true
         guard let currentUID = Auth.auth().currentUser?.uid else {
             self.hasConnection = false
             completion?(false)
@@ -103,6 +105,7 @@ final class ProfileViewModel: ObservableObject {
         guard let url = URL(string: urlString) else {
             print("URL inválida: \(urlString)")
             self.hasConnection = false
+            self.isLoadingCheckConnection = false
             completion?(false)
             return
         }
@@ -112,6 +115,7 @@ final class ProfileViewModel: ObservableObject {
             if let error = error {
                 print("Erro ao pegar token: \(error.localizedDescription)")
                 self.hasConnection = false
+                self.isLoadingCheckConnection = false
                 completion?(false)
                 return
             }
@@ -133,12 +137,14 @@ final class ProfileViewModel: ObservableObject {
                     if let error = error {
                         print("Erro na requisição: \(error.localizedDescription)")
                         self.hasConnection = false
+                        self.isLoadingCheckConnection = false
                         completion?(false)
                         return
                     }
 
                     guard let data = data else {
                         print("Resposta sem dados")
+                        self.isLoadingCheckConnection = false
                         self.hasConnection = false
                         completion?(false)
                         return
@@ -148,11 +154,12 @@ final class ProfileViewModel: ObservableObject {
                         // Decodifica JSON e extrai campo connected
                         let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
                         let connected = json?["connected"] as? Bool ?? false
-
+                        self.isLoadingCheckConnection = false
                         self.hasConnection = connected
                         completion?(connected)
                     } catch {
                         print("Erro ao decodificar JSON: \(error.localizedDescription)")
+                        self.isLoadingCheckConnection = false
                         self.hasConnection = false
                         completion?(false)
                     }

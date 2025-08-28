@@ -73,6 +73,7 @@ struct ProfileView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.top, 20)
                 .background(Color.FVColor.backgroundDark)
             }
             ScrollView {
@@ -165,17 +166,18 @@ struct ProfileView: View {
                         .background(Color.gray.opacity(0.3))
                         .padding(.horizontal)
 
-
-                    switch selectedTab {
-                    case .feed:
-                        if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid || viewModel.hasConnection {
-                            makePostView()
-                        } else {
-                            conditionalContent()
-                        }
-                    case .atividades:
-                        if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid || viewModel.hasConnection {
-                            makeAtivittyView()
+                    if !viewModel.isLoadingCheckConnection {
+                        switch selectedTab {
+                        case .feed:
+                            if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid || viewModel.hasConnection {
+                                makePostView()
+                            } else {
+                                conditionalContent()
+                            }
+                        case .atividades:
+                            if userSession.currentUser?.firebaseUid == userToShow?.firebaseUid || viewModel.hasConnection {
+                                makeAtivittyView()
+                            }
                         }
                     }
                 }

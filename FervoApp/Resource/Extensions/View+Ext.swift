@@ -74,11 +74,10 @@ struct BlurLoading: ViewModifier {
         }
         .onChange(of: isActive) { newValue in
             if newValue {
-                // ativa imediatamente
                 internalActive = true
             } else {
                 // mantém pelo menos 2 segundos
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                     internalActive = false
                 }
             }
