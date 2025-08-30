@@ -61,7 +61,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
             if let range = yesterdayLine.range(of: ":") {
                 let timePart = yesterdayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
 
-                let parts = timePart.components(separatedBy: "–").map { $0.trimmingCharacters(in: .whitespaces) }
+                let parts = timePart.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
                 if parts.count == 2 {
                     let openTime = parts[0]
                     let closeTime = parts[1]
@@ -95,7 +95,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
                     if timePart.lowercased() != "fechado" {
                         // Exemplo de retorno: "Abre quinta-feira às 21:00"
                         let dayCapitalized = futureDay.prefix(1).uppercased() + futureDay.dropFirst()
-                        return "Abre \(dayCapitalized) às \(timePart.components(separatedBy: "–").first!.trimmingCharacters(in: .whitespaces))"
+                        return "Abre \(dayCapitalized) às \(timePart.components(separatedBy: "-").first!.trimmingCharacters(in: .whitespaces))"
                     }
                 }
             }
@@ -125,7 +125,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
                   !dayLine.lowercased().contains("fechado") else { return nil }
 
             let timeRange = dayLine.components(separatedBy: ":").dropFirst().joined(separator: ":").trimmingCharacters(in: .whitespaces)
-            let times = timeRange.components(separatedBy: "–")
+            let times = timeRange.components(separatedBy: "-")
             guard times.count == 2 else { return nil }
 
             let openingTimeString = times[0].trimmingCharacters(in: .whitespaces)

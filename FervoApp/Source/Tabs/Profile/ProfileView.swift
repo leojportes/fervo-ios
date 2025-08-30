@@ -16,6 +16,7 @@ struct ProfileView: View {
     @State private var selectedUserFromSolicitations: UserModel? = nil
     @State private var selectedPostIndex: Int = 0
     @State private var isShowingPostCarousel = false
+    @State private var isPresentConnections = false
 
     enum ProfileTab {
         case feed
@@ -110,13 +111,19 @@ struct ProfileView: View {
 
                     // Connections and posts
                     HStack(spacing: 40) {
-                        VStack {
-                            Text("\(viewModel.connectedUsers.count)")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            Text(viewModel.connectedUsers.count == 1 ? "Conexão" : "Conexões")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                        Button(action: {
+                            if viewModel.connectedUsers.count > 0 {
+                                isPresentConnections = true
+                            }
+                        }) {
+                            VStack {
+                                Text("\(viewModel.connectedUsers.count)")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                Text(viewModel.connectedUsers.count == 1 ? "Conexão" : "Conexões")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
                         }
 
                         VStack {
@@ -187,9 +194,21 @@ struct ProfileView: View {
             ProfileView(userModel: user)
         }
         .sheet(isPresented: $isPresentSolicitations) {
-            SolicitationsView(userSession: userSession, onGoToUserPage: { user in
-                selectedUserFromSolicitations = user
-            })
+            SolicitationsView(
+                userSession: userSession,
+                onGoToUserPage: { user in
+                    selectedUserFromSolicitations = user
+                }
+            )
+        }
+        .sheet(isPresented: $isPresentConnections) {
+            ConnectionsView(
+                connections: viewModel.connectedUsers,
+                userSession: userSession,
+                onGoToUserPage: { user in
+                    selectedUserFromSolicitations = user
+                }
+            )
         }
         .background(Color.fvBackground)
         .onAppear {
@@ -197,7 +216,6 @@ struct ProfileView: View {
         }
         .navigationBarBackButtonHidden()
     }
-
 
     private func conditionalContent() -> some View {
         if viewModel.hasPendingConnections {
@@ -217,7 +235,7 @@ struct ProfileView: View {
                                 case .success(_):
                                     onAppearMethods()
                                 case .failure(_):
-                                    print("")
+                                    print("onAppearMethods fail")
                                 }
                             }
                         }

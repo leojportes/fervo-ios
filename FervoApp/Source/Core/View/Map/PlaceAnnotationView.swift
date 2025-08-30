@@ -65,6 +65,8 @@ class PlaceAnnotationView: MKAnnotationView {
                 DispatchQueue.main.async { [weak self] in
                     self?.imageView.image = image
                 }
+            } else {
+                self.imageView.image = UIImage(systemName: "person.circle.fill")
             }
         }.resume()
     }

@@ -19,7 +19,7 @@ struct CommentsBottomSheetView: View {
         VStack {
             Rectangle()
                 .frame(width: 30, height: 4)
-                .foregroundColor(Color(.systemGray5))
+                .foregroundColor(Color.white)
                 .clipShape(Capsule())
                 .padding(.bottom, 25)
                 .padding(.top, 12)

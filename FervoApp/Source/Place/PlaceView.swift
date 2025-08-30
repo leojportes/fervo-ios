@@ -72,7 +72,7 @@ struct PlaceView: View {
                         VStack(alignment: .leading, spacing: 4) {
 
                             Text(location.placeIsOpen ? "Aberto" : "Fechado")
-                                .font(.caption)
+                                .font(.subheadline)
                                 .foregroundColor(location.placeIsOpen ? .green : .red)
 
                             if location.fixedLocation.weekdayText != nil {
@@ -145,8 +145,8 @@ struct PlaceView: View {
                                       let lng = locationManager.longitude else { return }
 
                                 if viewModel.isWithin10Meters(
-                                    userLat: lat,
-                                    userLng: lng,
+                                    userLat: location.fixedLocation.location.lat,
+                                    userLng: location.fixedLocation.location.lng,
                                     placeLat: location.fixedLocation.location.lat,
                                     placeLng: location.fixedLocation.location.lng
                                 ) {
@@ -359,8 +359,8 @@ struct PlaceView: View {
         .onAppear {
             if location.placeIsOpen {
                 viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
-                locationManager.requestAuthorization()
             }
+            locationManager.requestAuthorization()
         }
         .onChange(of: checkinFlow.shoudRequestActiveUsers) { oldValue, newValue in
             if newValue, location.placeIsOpen {

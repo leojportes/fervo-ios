@@ -121,7 +121,7 @@ struct PriceSliderView: View {
     @Binding var price: Double
 
     let minPrice: Double = 0
-    let maxPrice: Double = 1000
+    let maxPrice: Double = 500
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -131,7 +131,7 @@ struct PriceSliderView: View {
                     .font(.system(size: 16, weight: .semibold))
 
                 Spacer()
-
+                
                 Text("R$ \(Int(price))")
                     .foregroundColor(.white)
                     .font(.system(size: 16, weight: .semibold))

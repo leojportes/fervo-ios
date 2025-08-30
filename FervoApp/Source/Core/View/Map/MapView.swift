@@ -33,21 +33,25 @@ struct MapView: UIViewRepresentable {
         let region = MKCoordinateRegion(center: coordinate, span: span)
         mapView.setRegion(region, animated: false)
 
+        // Always add the place annotation, even without user location
+        let distance: String
         if let userCoord = locationManager.currentLocation {
-            let distance = formattedDistanceFrom(
+            distance = formattedDistanceFrom(
                 userLat: userCoord.latitude,
                 userLng: userCoord.longitude,
                 placeLat: location.location.lat,
                 placeLng: location.location.lng
             )
-
-            let annotation = PlaceAnnotation(
-                coordinate: coordinate,
-                location: location,
-                distance: distance
-            )
-            mapView.addAnnotation(annotation)
+        } else {
+            distance = ""
         }
+        
+        let annotation = PlaceAnnotation(
+            coordinate: coordinate,
+            location: location,
+            distance: distance
+        )
+        mapView.addAnnotation(annotation)
 
         // Usuários ativos
         addUserAnnotations(to: mapView)
@@ -184,7 +188,7 @@ struct MapView: UIViewRepresentable {
         let distance = userLocation.distance(from: placeLocation)
 
         if distance < 1000 {
-            return "\(Int(distance)) metros"
+            return "\(Int(distance)) m"
         } else {
             let km = distance / 1000
             return "\(String(format: "%.1f", km)) km"

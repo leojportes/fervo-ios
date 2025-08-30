@@ -117,8 +117,8 @@ struct CheckInStepFourthView: View {
 
                 placeViewModel.makeCheckin(
                     placeID: location.fixedLocation.placeId,
-                    lat: lat,
-                    lng: lng
+                    lat: location.fixedLocation.location.lat,
+                    lng: location.fixedLocation.location.lng
                 ) { result in
                     switch result {
                     case .success:

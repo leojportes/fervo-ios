@@ -1,14 +1,14 @@
 //
-//  SolicitationsView.swift
+//  ConnectionsView.swift
 //  FervoApp
 //
-//  Created by Leonardo Jose De Oliveira Portes on 20/07/25.
+//  Created by Leonardo Jose De Oliveira Portes on 29/08/25.
 //
 
 import SwiftUI
 
-struct SolicitationsView: View {
-    @StateObject private var viewModel = SolicitationsViewModel()
+struct ConnectionsView: View {
+    let connections: [UserModel]
     let userSession: UserSession
     @Environment(\.dismiss) private var dismiss
     var onGoToUserPage: ((UserModel) -> Void)?
@@ -24,7 +24,7 @@ struct SolicitationsView: View {
 
             ScrollView {
                 VStack(alignment: .leading) {
-                    if viewModel.pendingConnections.isEmpty {
+                    if connections.isEmpty {
                         Text("Não há nenhuma\nsolicitação de conexão.")
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -34,14 +34,14 @@ struct SolicitationsView: View {
                             .frame(maxWidth: .infinity)
                             .foregroundStyle(.gray)
                     } else {
-                        ForEach(viewModel.pendingConnections, id: \.id) { connections in
+                        ForEach(connections, id: \.id) { user in
                             HStack(alignment: .top, spacing: 12) {
                                 Button(action: {
                                     dismiss()
-                                    onGoToUserPage?(connections.from)
+                                    onGoToUserPage?(user)
                                 }) {
                                     HStack {
-                                        AsyncImage(url: URL(string: connections.from.image?.photoURL ?? "")) { image in
+                                        AsyncImage(url: URL(string: user.image?.photoURL ?? "")) { image in
                                             image.resizable()
                                                 .scaledToFill()
                                                 .frame(width: 35, height: 35)
@@ -53,54 +53,20 @@ struct SolicitationsView: View {
                                         }
 
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(connections.from.name)
+                                            Text(user.name)
                                                 .font(.subheadline)
                                                 .foregroundColor(.white)
                                             HStack {
-                                                Text("@\(connections.from.username)")
+                                                Text("@\(user.username)")
                                                     .font(.caption.bold())
                                                     .foregroundColor(.white)
-
-                                                Text(connections.createdAt.timeAgoSinceDate)
-                                                    .font(.caption)
-                                                    .foregroundColor(.gray)
 
                                                 Spacer()
                                             }
                                         }
                                     }
                                 }
-
                                 Spacer()
-
-                                HStack(spacing: 6) {
-                                    Button(action: {
-                                        viewModel.acceptConnection(connectionID: connections.id) { result in
-                                            
-                                        }
-                                    }) {
-                                        Text("Confirmar")
-                                            .font(.caption)
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 8)
-                                            .background(Color.blue.opacity(0.8))
-                                            .cornerRadius(8)
-                                    }
-                                    Button(action: {
-                                        viewModel.cancelConnection(connectionID: connections.id) { result in
-                                            
-                                        }
-                                    }) {
-                                        Image(systemName: "xmark")
-                                            .font(.system(size: 14, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .padding(8)
-                                            .background(Color.clear)
-                                            .clipShape(Circle())
-                                    }
-                                }
-                                .padding(.leading, 12)
                             }
                             .padding(.leading, 16)
                             .padding(.top, 10)
@@ -114,7 +80,7 @@ struct SolicitationsView: View {
 
         }
         .onAppear {
-            viewModel.fetchPendingConnections()
+            //  viewModel.fetchPendingConnections()
         }
         .background(Color.fvCardBackgorund)
     }
