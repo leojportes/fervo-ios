@@ -127,7 +127,8 @@ struct PlaceView: View {
 
                   //  if location.placeIsOpen {
                         Button(action: {
-                            checkinFlow.showFirst = true
+                            checkinFlow.showCheckinFailedTooFar = true
+                            
                         }) {
                             VStack {
                                 Text("Check-in")
@@ -224,6 +225,12 @@ struct PlaceView: View {
             CheckInViewFirstStepView(location: location)
                 .environmentObject(checkinFlow)
         }
+        
+        .fullScreenCover(isPresented: $checkinFlow.showCheckinFailedTooFar){
+            CheckInFailedView(location: location)
+                .environmentObject(checkinFlow)
+        }
+        
         .navigationBarBackButtonHidden()
         .overlay {
             if showOpeningHours {
@@ -240,10 +247,14 @@ class CheckinViewFlow: ObservableObject {
     @Published var showThird = false
     @Published var showFourth = false
     @Published var showSuccess = false
+    @Published var showError = false
+    @Published var shoudRequestActiveUsers = false
+    @Published var showCheckinFailedTooFar = false
 
     func closeAll() {
         showFourth = false
         showSuccess = false
+        showError = false
         showThird = false
         showSecond = false
         showFirst = false

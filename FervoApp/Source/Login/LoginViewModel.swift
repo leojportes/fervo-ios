@@ -144,4 +144,4 @@ final class LoginViewModel: ObservableObject {
     }
 }
 
-let baseIPForTest = "https://localhost:8080"
+let baseIPForTest = "http://localhost:8080"
