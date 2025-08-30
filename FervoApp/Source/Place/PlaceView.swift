@@ -152,10 +152,8 @@ struct PlaceView: View {
                                 ) {
                                     checkinFlow.showFirst = true
                                 } else {
-                                    checkinFlow.showError = true
+                                    checkinFlow.showCheckinFailedTooFar = true
                                 }
-
-
                             }) {
                                 HStack(spacing: 12) {
                                     // Ícone à esquerda
@@ -413,18 +411,9 @@ struct PlaceView: View {
             CheckInViewFirstStepView(placeViewModel: viewModel, location: location)
                 .environmentObject(checkinFlow)
         }
-        .fullScreenCover(isPresented: $checkinFlow.showError) {
-            Group {
-                if let lat = locationManager.latitude,
-                   let lng = locationManager.longitude {
-                    CheckinResultView(
-                        errorMessage: "Você está longe do local. \(viewModel.formattedDistanceFrom(userLat: lat, userLng: lng, placeLat: location.fixedLocation.location.lat, placeLng: location.fixedLocation.location.lng)) de distância."
-                    )
-                    .environmentObject(checkinFlow)
-                } else {
-                    CheckinResultView(errorMessage: "")
-                }
-            }
+        .fullScreenCover(isPresented: $checkinFlow.showCheckinFailedTooFar){
+            CheckInFailedView(location: location)
+                .environmentObject(checkinFlow)
         }
         .navigationBarBackButtonHidden()
         .overlay {

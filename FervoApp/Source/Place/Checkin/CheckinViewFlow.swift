@@ -15,6 +15,7 @@ class CheckinViewFlow: ObservableObject {
     @Published var showSuccess = false
     @Published var showError = false
     @Published var shoudRequestActiveUsers = false
+    @Published var showCheckinFailedTooFar = false
 
     func closeAll() {
         showFourth = false

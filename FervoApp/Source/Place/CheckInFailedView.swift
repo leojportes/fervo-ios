@@ -8,7 +8,10 @@
 import SwiftUI
 
 struct CheckInFailedView: View {
-    
+    @EnvironmentObject var flow: CheckinViewFlow
+    @Environment(\.dismiss) private var dismiss
+    @StateObject var placeViewModel = PlaceViewModel()
+    @State var location: LocationWithPosts
     
     var body: some View {
         ZStack {
@@ -18,42 +21,13 @@ struct CheckInFailedView: View {
             .edgesIgnoringSafeArea(.all)
             
             VStack{
-             
-                //Header
-                HStack{
-                    Button {
-                        // ação aqui
-                    } label: {
-                        Image(systemName: "chevron.backward")
-                            .foregroundStyle(.white)
-                            .font(.title)
-                        .padding(.trailing, 10)
-                        
-                        Text("Don't Tell Mama") //Ajustar com o fixedLocation
-                            .foregroundStyle(.white)
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                    }
-                    
-
-                    Spacer()
-                }
-                .padding(.bottom, 5)
-                .padding(.leading, 17)
-                
-                Divider()
-                    .frame(height: 1)
-                    .background(Color.white)
-                    .opacity(0.4)
-                
-              
                 Text("Check-in")
                     .font(.system(size: 33, weight: .bold))
                     .foregroundStyle(.white)
-                    .padding(.top, 28)
+                    .padding(.top, 35)
                 
                 VStack{
-                    Text("Você ainda não chegou no \("Don't Tell Mama"/* Ajustar com o fixedLocation*/)")
+                    Text("Você ainda não chegou no \(location.fixedLocation.name)")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.bottom, 1)
@@ -66,7 +40,17 @@ struct CheckInFailedView: View {
                 .padding(.top, 60)
                 
                 
-                // Image(........)
+                AsyncImage(url: URL(string: location.fixedLocation.photoURL)) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    Color.gray.opacity(0.2)
+                        .shimmering()
+                }
+                .frame(width: 170, height: 170)
+                .clipShape(Circle())
+                .padding(.top, 80)
                 
                 Spacer()
                 
@@ -79,7 +63,7 @@ struct CheckInFailedView: View {
                         .padding(.bottom, 10)
                     
                     Button {
-                        // action
+                        dismiss()
                     } label: {
                         Text("Voltar")
                             .frame(width: 340, height: 50, alignment: .center)
@@ -101,6 +85,6 @@ struct CheckInFailedView: View {
     }
 }
 
-#Preview {
-    CheckInFailedView()
-}
+//#Preview {
+//    CheckInFailedView()
+//}
