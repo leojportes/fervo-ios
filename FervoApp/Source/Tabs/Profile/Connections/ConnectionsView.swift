@@ -8,23 +8,27 @@
 import SwiftUI
 
 struct ConnectionsView: View {
-    let connections: [UserModel]
     let userSession: UserSession
+    let user: UserModel
+    @StateObject private var viewModel = ConnectionsViewModel()
     @Environment(\.dismiss) private var dismiss
     var onGoToUserPage: ((UserModel) -> Void)?
 
     var body: some View {
         VStack {
-            Rectangle()
-                .frame(width: 30, height: 4)
-                .foregroundColor(Color.white)
-                .clipShape(Capsule())
-                .padding(.bottom, 25)
-                .padding(.top, 12)
+            HStack {
+                 Spacer()
+                 Capsule()
+                     .frame(width: 30, height: 4)
+                     .foregroundColor(.white)
+                 Spacer()
+             }
+             .padding(.top, 12)
+             .padding(.bottom, 25)
 
             ScrollView {
                 VStack(alignment: .leading) {
-                    if connections.isEmpty {
+                    if viewModel.connectedUsers.isEmpty && !viewModel.isFetchingConnectedUsers {
                         Text("Não há nenhuma\nsolicitação de conexão.")
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -34,7 +38,7 @@ struct ConnectionsView: View {
                             .frame(maxWidth: .infinity)
                             .foregroundStyle(.gray)
                     } else {
-                        ForEach(connections, id: \.id) { user in
+                        ForEach(viewModel.connectedUsers, id: \.id) { user in
                             HStack(alignment: .top, spacing: 12) {
                                 Button(action: {
                                     dismiss()
@@ -80,8 +84,8 @@ struct ConnectionsView: View {
 
         }
         .onAppear {
-            //  viewModel.fetchPendingConnections()
+            viewModel.fetchConnectedUsers(for: user.firebaseUid)
         }
-        .background(Color.fvCardBackgorund)
+        .background(Color.FVColor.backgroundDark.ignoresSafeArea())
     }
 }

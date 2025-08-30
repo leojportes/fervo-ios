@@ -24,6 +24,10 @@ final class ProfileViewModel: ObservableObject {
     private var isFetching: Bool = false
     private var isFetchingConnectedUsers = false
 
+    var numberOfonnectionsTitle: String {
+        connectedUsers.count == 1 ? "Conexão" : "Conexões"
+    }
+
 
     func fetchUserPosts(firebaseUID: String) {
         guard !isFetching else { return }  // evita chamadas concorrentes
@@ -281,50 +285,59 @@ final class ProfileViewModel: ObservableObject {
         }.resume()
     }
 
-    func fetchConnectedUsers() {
-           guard !isFetchingConnectedUsers else { return }
-            isFetchingConnectedUsers = true
+    func fetchConnectedUsers(for uid: String? = nil) {
+        guard !isFetchingConnectedUsers else { return }
+        isFetchingConnectedUsers = true
 
-           Auth.auth().currentUser?.getIDToken { [weak self] token, error in
-               guard let self = self else { return }
-               defer { self.isFetchingConnectedUsers = false }
+        Auth.auth().currentUser?.getIDToken { [weak self] token, error in
+            guard let self = self else { return }
+            defer { self.isFetchingConnectedUsers = false }
 
-               if let error = error {
-                   print("Erro ao obter token: \(error.localizedDescription)")
-                   return
-               }
+            if let error = error {
+                print("Erro ao obter token: \(error.localizedDescription)")
+                return
+            }
 
-               guard let token = token else {
-                   print("Token inválido")
-                   return
-               }
+            guard let token = token else {
+                print("Token inválido")
+                return
+            }
 
-               guard let url = URL(string: "\(baseIPForTest)/connections/connected") else {
-                   print("URL inválida")
-                   return
-               }
+            // Monta a URL dependendo se passou UID ou não
+            let urlString: String
+            if let uid = uid, !uid.isEmpty {
+                // Buscar conexões de outro usuário
+                urlString = "\(baseIPForTest)/connections/connected/uuid?uid=\(uid)"
+            } else {
+                // Buscar conexões do usuário logado
+                urlString = "\(baseIPForTest)/connections/connected"
+            }
 
-               var request = URLRequest(url: url)
-               request.httpMethod = "GET"
-               request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-               request.cachePolicy = .reloadIgnoringLocalCacheData
+            guard let url = URL(string: urlString) else {
+                print("URL inválida")
+                return
+            }
 
-               let decoder = JSONDecoder()
-               // Configure o decoder para datas se necessário, exemplo:
-               // decoder.dateDecodingStrategy = .iso8601
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.cachePolicy = .reloadIgnoringLocalCacheData
 
-               URLSession.shared.dataTaskPublisher(for: request)
-                   .map(\.data)
-                   .decode(type: [UserModel].self, decoder: decoder)
-                   .receive(on: DispatchQueue.main)
-                   .sink { completion in
-                       if case let .failure(error) = completion {
-                           print("Erro ao buscar usuários conectados: \(error.localizedDescription)")
-                       }
-                   } receiveValue: { [weak self] users in
-                       self?.connectedUsers = users
-                   }
-                   .store(in: &self.cancellables)
-           }
-       }
+            let decoder = JSONDecoder()
+            // decoder.dateDecodingStrategy = .iso8601 // se precisar para datas
+
+            URLSession.shared.dataTaskPublisher(for: request)
+                .map(\.data)
+                .decode(type: [UserModel].self, decoder: decoder)
+                .receive(on: DispatchQueue.main)
+                .sink { completion in
+                    if case let .failure(error) = completion {
+                        print("Erro ao buscar usuários conectados: \(error.localizedDescription)")
+                    }
+                } receiveValue: { [weak self] users in
+                    self?.connectedUsers = users
+                }
+                .store(in: &self.cancellables)
+        }
+    }
 }

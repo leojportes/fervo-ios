@@ -15,16 +15,18 @@ struct SolicitationsView: View {
 
     var body: some View {
         VStack {
-            Rectangle()
-                .frame(width: 30, height: 4)
-                .foregroundColor(Color.white)
-                .clipShape(Capsule())
-                .padding(.bottom, 25)
-                .padding(.top, 12)
-
+            HStack {
+                 Spacer()
+                 Capsule()
+                     .frame(width: 30, height: 4)
+                     .foregroundColor(.white)
+                 Spacer()
+             }
+             .padding(.top, 12)
+             .padding(.bottom, 25)
             ScrollView {
                 VStack(alignment: .leading) {
-                    if viewModel.pendingConnections.isEmpty {
+                    if viewModel.pendingConnections.isEmpty && !viewModel.pendingConnectionsIsLoading {
                         Text("Não há nenhuma\nsolicitação de conexão.")
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -33,7 +35,7 @@ struct SolicitationsView: View {
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             .foregroundStyle(.gray)
-                    } else {
+                    } else if !viewModel.pendingConnectionsIsLoading {
                         ForEach(viewModel.pendingConnections, id: \.id) { connections in
                             HStack(alignment: .top, spacing: 12) {
                                 Button(action: {
@@ -109,13 +111,16 @@ struct SolicitationsView: View {
                 }
             }
             .padding(.bottom, 50)
+            .background(Color.FVColor.backgroundDark.ignoresSafeArea())
+
 
             Spacer()
+                .background(Color.FVColor.backgroundDark.ignoresSafeArea())
 
         }
         .onAppear {
             viewModel.fetchPendingConnections()
         }
-        .background(Color.fvCardBackgorund)
+        .background(Color.FVColor.backgroundDark.ignoresSafeArea())
     }
 }

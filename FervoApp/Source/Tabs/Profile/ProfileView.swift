@@ -112,7 +112,7 @@ struct ProfileView: View {
                     // Connections and posts
                     HStack(spacing: 40) {
                         Button(action: {
-                            if viewModel.connectedUsers.count > 0 {
+                            if viewModel.connectedUsers.count > 0 && (viewModel.hasConnection || userSession.currentUser?.firebaseUid == userToShow?.firebaseUid) {
                                 isPresentConnections = true
                             }
                         }) {
@@ -120,7 +120,7 @@ struct ProfileView: View {
                                 Text("\(viewModel.connectedUsers.count)")
                                     .font(.headline)
                                     .foregroundColor(.white)
-                                Text(viewModel.connectedUsers.count == 1 ? "Conexão" : "Conexões")
+                                Text(viewModel.numberOfonnectionsTitle)
                                     .font(.caption)
                                     .foregroundColor(.gray)
                             }
@@ -202,13 +202,15 @@ struct ProfileView: View {
             )
         }
         .sheet(isPresented: $isPresentConnections) {
-            ConnectionsView(
-                connections: viewModel.connectedUsers,
-                userSession: userSession,
-                onGoToUserPage: { user in
-                    selectedUserFromSolicitations = user
-                }
-            )
+            if let user = userToShow {
+                ConnectionsView(
+                    userSession: userSession,
+                    user: user,
+                    onGoToUserPage: { user in
+                        selectedUserFromSolicitations = user
+                    }
+                )
+            }
         }
         .background(Color.fvBackground)
         .onAppear {
@@ -274,7 +276,7 @@ struct ProfileView: View {
         }
         if let user = userToShow {
             viewModel.fetchUserPosts(firebaseUID: user.firebaseUid)
-            viewModel.fetchConnectedUsers()
+            viewModel.fetchConnectedUsers(for: user.firebaseUid)
         }
         customizeNavigationBar()
     }
