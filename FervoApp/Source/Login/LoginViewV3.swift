@@ -23,7 +23,7 @@ struct LoginViewV3: View {
                 VStack{
                     
                     Text("FERVO")
-                        .font(.system(size: 45, weight: .bold, design: .default))
+                        .font(.system(size: 40, weight: .bold, design: .default))
                         .foregroundStyle(Color(red: 0.1622, green: 0.2980, blue: 0.8799))
                         .kerning(20)
                         .padding(.leading, 20)
@@ -53,6 +53,16 @@ struct LoginViewV3: View {
                                     .keyboardType(.emailAddress)
                                 
                                 
+                                Button {
+                                    //action
+                                } label: {
+                                    Image(systemName: "eye")
+                                        .foregroundStyle(.gray)
+                                        .font(.system(size: 25))
+                                        .frame(maxWidth: .infinity ,alignment: .trailing)
+                                        .padding(.trailing, 19)
+                                }
+                                
                             }
                         }
                         
@@ -79,15 +89,27 @@ struct LoginViewV3: View {
                                     .font(.system(size: 20))
                                     .foregroundStyle(.white)
                                     .keyboardType(.emailAddress)
+                                
+                                Button {
+                                    //action
+                                } label: {
+                                    Image(systemName: "eye")
+                                        .foregroundStyle(.gray)
+                                        .font(.system(size: 25))
+                                        .frame(maxWidth: .infinity ,alignment: .trailing)
+                                        .padding(.trailing, 19)
+                                }
+
                             }
 
                         }
                         
                         
                     }
-                    .padding(.top, 80)
+                    .padding(.top, 50)
                     
                     VStack{
+                        
                         Button {
                             //Code
                         } label: {
@@ -97,6 +119,31 @@ struct LoginViewV3: View {
                         }
                         .padding()
                         
+                        
+                        Button {
+                            //code
+                        } label: {
+                            Text("Entrar")
+                        }
+                        .frame(width: 340, height: 65, alignment: .center)
+                        .background(Color(.blue).opacity(0.8))
+                        .foregroundStyle(.white)
+                        .cornerRadius(40)
+                        .font(.system(size: 20, weight: .bold))
+                        
+                        HStack{
+                            Text("Não tem uma conta?")
+                                .foregroundStyle(.gray)
+                            
+                            Button {
+                                //code
+                            } label: {
+                                Text("Registre-se!")
+                                    .foregroundStyle(.white)
+                            }
+
+                        }
+                        .padding(25)
                         
                     }
                     
