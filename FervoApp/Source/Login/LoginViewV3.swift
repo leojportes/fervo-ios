@@ -11,6 +11,7 @@ struct LoginViewV3: View {
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var rememberMe = false
+    @State private var isHidden = true
     
     var body: some View {
         
@@ -51,18 +52,6 @@ struct LoginViewV3: View {
                                     .font(.system(size: 20))
                                     .foregroundStyle(.white)
                                     .keyboardType(.emailAddress)
-                                
-                                
-                                Button {
-                                    //action
-                                } label: {
-                                    Image(systemName: "eye")
-                                        .foregroundStyle(.gray)
-                                        .font(.system(size: 25))
-                                        .frame(maxWidth: .infinity ,alignment: .trailing)
-                                        .padding(.trailing, 19)
-                                }
-                                
                             }
                         }
                         
@@ -82,23 +71,41 @@ struct LoginViewV3: View {
                                     .frame(width: 360, height: 65)
                                     .opacity(0.1)
                                 
-                                TextField("", text: $password, prompt: Text("Senha cadastrada")
-                                    .foregroundStyle(.gray))
+                                if (isHidden == false) {
+                                    TextField("", text: $password, prompt: Text("Senha cadastrada")
+                                        .foregroundStyle(.gray))
                                     .padding(.leading, 40)
                                     .opacity(0.5)
                                     .font(.system(size: 20))
                                     .foregroundStyle(.white)
                                     .keyboardType(.emailAddress)
+                                } else {
+                                    SecureField("", text: $password, prompt: Text("Senha cadastrada")
+                                        .foregroundStyle(.gray))
+                                    .padding(.leading, 40)
+                                    .opacity(0.5)
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(.white)
+                                    .keyboardType(.emailAddress)
+                                }
                                 
                                 Button {
-                                    //action
+                                   isHidden.toggle()
                                 } label: {
-                                    Image(systemName: "eye")
-                                        .foregroundStyle(.gray)
-                                        .font(.system(size: 25))
-                                        .frame(maxWidth: .infinity ,alignment: .trailing)
-                                        .padding(.trailing, 19)
+                                    if(isHidden == false){
+                                        Image(systemName: "eye")
+                                            .foregroundStyle(.gray)
+                                            .font(.system(size: 22))
+                                            .padding(.trailing, 28)
+                                    }else {
+                                        Image(systemName: "eye.slash")
+                                            .foregroundStyle(.gray)
+                                            .font(.system(size: 22))
+                                            .padding(.trailing, 28)
+                                    }
+                                    
                                 }
+                                .frame(maxWidth: .infinity ,alignment: .trailing)
 
                             }
 
