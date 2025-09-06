@@ -10,7 +10,7 @@ import SwiftUI
 struct CheckInFailedView: View {
     @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
-    @StateObject var placeViewModel = PlaceViewModel()
+    @StateObject var placeViewModel: PlaceViewModel
     @State var location: LocationWithPosts
     
     var body: some View {

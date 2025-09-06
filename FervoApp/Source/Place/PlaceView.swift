@@ -412,7 +412,7 @@ struct PlaceView: View {
                 .environmentObject(checkinFlow)
         }
         .fullScreenCover(isPresented: $checkinFlow.showCheckinFailedTooFar){
-            CheckInFailedView(location: location)
+            CheckInFailedView(placeViewModel: viewModel, location: location)
                 .environmentObject(checkinFlow)
         }
         .navigationBarBackButtonHidden()
