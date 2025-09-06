@@ -38,9 +38,10 @@ struct StickyHeaderView: View {
                             .truncationMode(.tail)
                     }
 
-                    Text(location.fixedLocation.city)
+                    Text("\(location.fixedLocation.city) - \(location.fixedLocation.neighborhood)")
                         .font(.subheadline.bold())
                         .foregroundColor(.gray)
+                        .lineLimit(2)
                 }
 
                 Spacer()

@@ -17,11 +17,18 @@ final class ProfileViewModel: ObservableObject {
     @Published var hasConnection: Bool = false
     @Published var hasPendingConnections: Bool = false
     @Published var pendingConnectionId: String? = nil
+    @Published var isLoadingCheckConnection: Bool = false
+    @Published var userActivityHistory: [UserActivityResponse] = []
+    @Published var isFetchingHistory: Bool = false
 
 
     private var cancellables = Set<AnyCancellable>()
     private var isFetching: Bool = false
     private var isFetchingConnectedUsers = false
+
+    var numberOfonnectionsTitle: String {
+        connectedUsers.count == 1 ? "Conexão" : "Conexões"
+    }
 
 
     func fetchUserPosts(firebaseUID: String) {
@@ -93,7 +100,8 @@ final class ProfileViewModel: ObservableObject {
     }
 
     func checkConnection(with otherUserUID: String, completion: ((Bool) -> Void)? = nil) {
-        guard let currentUID = Auth.auth().currentUser?.uid else {
+        self.isLoadingCheckConnection = true
+        guard Auth.auth().currentUser?.uid != nil else {
             self.hasConnection = false
             completion?(false)
             return
@@ -103,6 +111,7 @@ final class ProfileViewModel: ObservableObject {
         guard let url = URL(string: urlString) else {
             print("URL inválida: \(urlString)")
             self.hasConnection = false
+            self.isLoadingCheckConnection = false
             completion?(false)
             return
         }
@@ -112,6 +121,7 @@ final class ProfileViewModel: ObservableObject {
             if let error = error {
                 print("Erro ao pegar token: \(error.localizedDescription)")
                 self.hasConnection = false
+                self.isLoadingCheckConnection = false
                 completion?(false)
                 return
             }
@@ -133,12 +143,14 @@ final class ProfileViewModel: ObservableObject {
                     if let error = error {
                         print("Erro na requisição: \(error.localizedDescription)")
                         self.hasConnection = false
+                        self.isLoadingCheckConnection = false
                         completion?(false)
                         return
                     }
 
                     guard let data = data else {
                         print("Resposta sem dados")
+                        self.isLoadingCheckConnection = false
                         self.hasConnection = false
                         completion?(false)
                         return
@@ -148,11 +160,12 @@ final class ProfileViewModel: ObservableObject {
                         // Decodifica JSON e extrai campo connected
                         let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
                         let connected = json?["connected"] as? Bool ?? false
-
+                        self.isLoadingCheckConnection = false
                         self.hasConnection = connected
                         completion?(connected)
                     } catch {
                         print("Erro ao decodificar JSON: \(error.localizedDescription)")
+                        self.isLoadingCheckConnection = false
                         self.hasConnection = false
                         completion?(false)
                     }
@@ -274,50 +287,105 @@ final class ProfileViewModel: ObservableObject {
         }.resume()
     }
 
-    func fetchConnectedUsers() {
-           guard !isFetchingConnectedUsers else { return }
-            isFetchingConnectedUsers = true
+    func fetchConnectedUsers(for uid: String? = nil) {
+        guard !isFetchingConnectedUsers else { return }
+        isFetchingConnectedUsers = true
 
-           Auth.auth().currentUser?.getIDToken { [weak self] token, error in
-               guard let self = self else { return }
-               defer { self.isFetchingConnectedUsers = false }
+        Auth.auth().currentUser?.getIDToken { [weak self] token, error in
+            guard let self = self else { return }
+            defer { self.isFetchingConnectedUsers = false }
 
-               if let error = error {
-                   print("Erro ao obter token: \(error.localizedDescription)")
-                   return
-               }
+            if let error = error {
+                print("Erro ao obter token: \(error.localizedDescription)")
+                return
+            }
 
-               guard let token = token else {
-                   print("Token inválido")
-                   return
-               }
+            guard let token = token else {
+                print("Token inválido")
+                return
+            }
 
-               guard let url = URL(string: "\(baseIPForTest)/connections/connected") else {
-                   print("URL inválida")
-                   return
-               }
+            // Monta a URL dependendo se passou UID ou não
+            let urlString: String
+            if let uid = uid, !uid.isEmpty {
+                // Buscar conexões de outro usuário
+                urlString = "\(baseIPForTest)/connections/connected/uuid?uid=\(uid)"
+            } else {
+                // Buscar conexões do usuário logado
+                urlString = "\(baseIPForTest)/connections/connected"
+            }
 
-               var request = URLRequest(url: url)
-               request.httpMethod = "GET"
-               request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-               request.cachePolicy = .reloadIgnoringLocalCacheData
+            guard let url = URL(string: urlString) else {
+                print("URL inválida")
+                return
+            }
 
-               let decoder = JSONDecoder()
-               // Configure o decoder para datas se necessário, exemplo:
-               // decoder.dateDecodingStrategy = .iso8601
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.cachePolicy = .reloadIgnoringLocalCacheData
 
-               URLSession.shared.dataTaskPublisher(for: request)
-                   .map(\.data)
-                   .decode(type: [UserModel].self, decoder: decoder)
-                   .receive(on: DispatchQueue.main)
-                   .sink { completion in
-                       if case let .failure(error) = completion {
-                           print("Erro ao buscar usuários conectados: \(error.localizedDescription)")
-                       }
-                   } receiveValue: { [weak self] users in
-                       self?.connectedUsers = users
-                   }
-                   .store(in: &self.cancellables)
-           }
-       }
+            let decoder = JSONDecoder()
+            // decoder.dateDecodingStrategy = .iso8601 // se precisar para datas
+
+            URLSession.shared.dataTaskPublisher(for: request)
+                .map(\.data)
+                .decode(type: [UserModel].self, decoder: decoder)
+                .receive(on: DispatchQueue.main)
+                .sink { completion in
+                    if case let .failure(error) = completion {
+                        print("Erro ao buscar usuários conectados: \(error.localizedDescription)")
+                    }
+                } receiveValue: { [weak self] users in
+                    self?.connectedUsers = users
+                }
+                .store(in: &self.cancellables)
+        }
+    }
+
+    func fetchUserActivityHistory(uid: String) {
+        guard let url = URL(string: "\(baseIPForTest)/checkin/history?firebase_uid=\(uid)") else {
+            print("URL inválida")
+            self.isFetchingHistory = false
+            return
+        }
+
+        self.isFetchingHistory = true
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+
+            if let error = error {
+                print("Erro ao buscar histórico:", error)
+                self.isFetchingHistory = false
+                return
+            }
+
+            guard let data = data else {
+                print("Nenhum dado retornado")
+                self.isFetchingHistory = false
+                return
+            }
+
+            do {
+
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSZ"
+
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .formatted(formatter)
+
+
+                let activities = try decoder.decode([UserActivityResponse].self, from: data)
+
+                DispatchQueue.main.async {
+                    self.isFetchingHistory = false
+                    self.userActivityHistory = activities
+                }
+            } catch {
+                print("Erro ao decodificar JSON:", error)
+            }
+        }.resume()
+    }
 }

@@ -14,6 +14,19 @@ struct PlaceView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showOpeningHours = false
     @StateObject var checkinFlow = CheckinViewFlow()
+    @StateObject private var viewModel: PlaceViewModel
+    @State private var showTooltip = false
+    @StateObject private var locationManager = LocationManager()
+
+    init(location: LocationWithPosts, userSession: UserSession) {
+        _location = State(initialValue: location)
+        self.userSession = userSession
+        _viewModel = StateObject(
+            wrappedValue: PlaceViewModel(
+                firebaseUid: userSession.currentUser?.firebaseUid ?? .empty
+            )
+        )
+    }
 
     @State private var selectedUserOfPost: UserModel?
 
@@ -42,7 +55,7 @@ struct PlaceView: View {
                 .frame(height: 50)
             }
 
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
                         AsyncImage(url: URL(string: location.fixedLocation.photoURL)) { image in
@@ -59,7 +72,7 @@ struct PlaceView: View {
                         VStack(alignment: .leading, spacing: 4) {
 
                             Text(location.placeIsOpen ? "Aberto" : "Fechado")
-                                .font(.caption)
+                                .font(.subheadline)
                                 .foregroundColor(location.placeIsOpen ? .green : .red)
 
                             if location.fixedLocation.weekdayText != nil {
@@ -101,12 +114,12 @@ struct PlaceView: View {
                         }
 
                         if location.placeIsOpen {
-                            Label("236 pessoas agora", systemImage: "person.2.fill")
+                            Label(viewModel.peoplesNowDescription, systemImage: "person.3.fill")
                                 .padding(8)
                                 .background(Color.fvHeaderCardbackground)
                                 .cornerRadius(10)
                                 .font(.caption)
-                                .foregroundColor(.white)
+                                .foregroundColor(.green)
                         }
 
                         if let website = location.fixedLocation.website,
@@ -125,54 +138,172 @@ struct PlaceView: View {
                         }
                     }
 
-                  //  if location.placeIsOpen {
-                        Button(action: {
-                            checkinFlow.showFirst = true
-                        }) {
-                            VStack {
-                                Text("Check-in")
-                                    .foregroundColor(.white)
-                                    .font(.headline)
+                    if !viewModel.isFetchingActiveUsers {
+                        if !currentUserHasCheckedIn() {
+                            Button(action: {
+                                guard let lat = locationManager.latitude,
+                                      let lng = locationManager.longitude else { return }
 
-                                HStack(spacing: 4) {
-                                    Text("Ganhe 250 pontos")
+                                if viewModel.isWithin10Meters(
+                                    userLat: location.fixedLocation.location.lat,
+                                    userLng: location.fixedLocation.location.lng,
+                                    placeLat: location.fixedLocation.location.lat,
+                                    placeLng: location.fixedLocation.location.lng
+                                ) {
+                                    checkinFlow.showFirst = true
+                                } else {
+                                    checkinFlow.showError = true
+                                }
+
+
+                            }) {
+                                HStack(spacing: 12) {
+                                    // Ícone à esquerda
+                                    ZStack {
+                                        Circle()
+                                            .fill(location.placeIsOpen ? Color.blue : Color.gray.opacity(0.3))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        if location.placeIsOpen {
+                                            Image(systemName: "location.fill")
+                                                .foregroundColor(.white)
+                                                .font(.system(size: 16, weight: .medium))
+                                        } else {
+                                            Image(systemName: "clock.fill")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 16, weight: .medium))
+                                        }
+                                    }
+                                    
+                                    // Conteúdo principal
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Check-in")
+                                            .foregroundColor(location.placeIsOpen ? .white : .gray)
+                                            .font(.system(.subheadline, weight: .semibold))
+                                        
+                                        HStack(spacing: 6) {
+                                            Text(location.placeIsOpen ? "Ganhe 250 pontos" : location.fixedLocation.timeUntilNextOpen() ?? .empty)
+                                                .foregroundColor(location.placeIsOpen ? .white.opacity(0.8) : .gray)
+                                                .font(.system(.caption, weight: .medium))
+                                            
+                                            if location.placeIsOpen {
+                                                Image(systemName: "bitcoinsign.circle.fill")
+                                                    .foregroundColor(.yellow)
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .shadow(color: .yellow.opacity(0.3), radius: 2)
+                                            }
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // Seta indicativa
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(location.placeIsOpen ? .white.opacity(0.6) : .gray.opacity(0.6))
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(location.placeIsOpen ? 
+                                              LinearGradient(colors: [Color.blue, Color.blue.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing) : 
+                                              LinearGradient(colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(location.placeIsOpen ? Color.blue.opacity(0.3) : Color.gray.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                                .frame(maxWidth: 220)
+                            }
+                            .disabled(!location.placeIsOpen)
+                        } else if location.placeIsOpen && currentUserHasCheckedIn() {
+                            Button(action: {
+                                showTooltip = true
+                            }) {
+                                HStack {
+                                    Text("Você está nesse local")
                                         .foregroundColor(.white)
-                                        .font(.caption2)
+                                        .font(.subheadline)
 
-                                    Image(systemName: "bitcoinsign.circle.fill")
-                                        .foregroundColor(.yellow)
-                                        .font(.caption)
+                                    Image(systemName: "info.circle")
+                                        .foregroundColor(.black)
+                                        .font(.subheadline)
                                         .shadow(radius: 4)
                                 }
+                                .frame(maxWidth: 190)
+                                .padding()
+                                .background(Color.blue.opacity(0.5))
+                                .cornerRadius(15)
                             }
-                            .frame(maxWidth: 160)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(15)
                         }
+                    } else {
+                        Spacer().frame(height: 50)
+                    }
+
 
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Localização")
-                            .font(.title3)
-                            .bold()
-                            .foregroundColor(.white)
+                        HStack(alignment: .bottom) {
+                            Text(location.placeIsOpen ? "Quem está no rolê agora" : "Localização")
+                                .font(.title3)
+                                .bold()
+                                .foregroundColor(.white)
+                            Spacer()
+
+                            Button {
+                                viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(8)
+                                    .background(Color.blue.opacity(0.2))
+                                    .clipShape(Circle())
+                            }
+                        }
 
                         MapContentView(
+                            userSession: userSession,
                             initialCoordinate: .init(latitude: location.fixedLocation.location.lat, longitude: location.fixedLocation.location.lng),
-                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
+                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002),
+                            users: location.placeIsOpen ? viewModel.activeUsers : [],
+                            location: location.fixedLocation,
+                            locationManager: locationManager
                         )
                         .frame(height: 200)
                         .cornerRadius(15)
 
-                        if location.placeIsOpen {
-                            HStack {
+                        VStack(spacing: 10) {
+                            if location.placeIsOpen {
+                                if viewModel.activeUsers.count > 0 {
+                                    HStack(spacing: 4) {
+                                        HStack(spacing: -6) {
+                                            if viewModel.activeUsers.count != 0 {
+                                                ForEach(viewModel.activeUsers.prefix(3), id: \.self) { user in
+
+                                                    RemoteImage(url: URL(string: user.user.image?.photoURL ?? .empty))
+                                                        .frame(width: 24, height: 24)
+                                                        .clipShape(Circle())
+                                                        .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                                                }
+                                            }
+                                        }
+                                        .padding(.leading, 6)
+                                        Text(viewModel.activeUsernames)
+                                            .foregroundColor(.gray)
+                                            .font(.caption)
+                                        Spacer()
+                                    }
+                                }
+                            }
+                            HStack(spacing: 4) {
+                                TransportDarkButton(service: .uber, destination: .coordinates(lat: location.fixedLocation.location.lat, lng: location.fixedLocation.location.lng, name: location.fixedLocation.name), style: .dark)
+                                TransportDarkButton(service: .google, destination: .address(location.fixedLocation.name), style: .light)
                                 Spacer()
-                                Label("236 no rolê", systemImage: "person.3.fill")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
                             }
                         }
-                    }
+                    }.padding(.top, 6)
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Últimos posts")
@@ -182,47 +313,118 @@ struct PlaceView: View {
 
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
-                                if let posts = location.posts {
+                                if let posts = location.posts, posts.count > 0 {
                                     ForEach(posts) { post in
                                         Button(
                                             action: {
                                                 self.selectedUserOfPost = post.userPost
                                             }
                                         ) {
-                                            AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            } placeholder: {
-                                                Rectangle()
-                                                    .fill(Color.gray.opacity(0.2))
-                                                    .shimmering()
+                                            ZStack(alignment: .bottomLeading) {
+                                                // Imagem principal (base)
+                                                AsyncImage(url: URL(string: post.image.photoURL ?? .empty)) { image in
+                                                    image
+                                                        .resizable()
+                                                        .scaledToFill()
+                                                } placeholder: {
+                                                    Rectangle()
+                                                        .fill(Color.gray.opacity(0.2))
+                                                        .shimmering()
+                                                }
+                                                .frame(width: 150, height: 200)
+                                                .clipped()
+                                                .cornerRadius(8)
+
+                                                // Sombra gradiente na parte inferior
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [Color.black, Color.clear]),
+                                                    startPoint: .bottom,
+                                                    endPoint: .top
+                                                )
+                                                .frame(height: 70) // altura da sombra
+                                                .cornerRadius(8, corners: [.bottomLeft, .bottomRight])
+
+                                                HStack(alignment: .top, spacing: 5) {
+                                                    AsyncImage(url: URL(string: post.userPost.image?.photoURL ?? "")) { image in
+                                                        image
+                                                            .resizable()
+                                                            .scaledToFill()
+                                                    } placeholder: {
+                                                        Circle()
+                                                            .fill(Color.gray.opacity(0.3))
+                                                    }
+                                                    .frame(width: 24, height: 24)
+                                                    .clipShape(Circle())
+                                                    .overlay(
+                                                        Circle().stroke(Color.white, lineWidth: 0.5)
+                                                    )
+
+
+                                                    VStack(alignment: .leading) {
+                                                        Text("@\(post.userPost.username)")
+                                                            .font(.caption.bold())
+                                                        Text("\(post.createdAt.timeAgoSinceDate)")
+                                                            .font(.caption2)
+                                                            .foregroundColor(.gray)
+                                                    }
+
+                                                }
+                                                .padding(.leading, 6)
+                                                .padding(.bottom, 6)
                                             }
-                                            .frame(width: 120, height: 160)
-                                            .clipped()
-                                            .cornerRadius(8)
                                         }
 
                                     }
+                                } else {
+                                    Text("Nenhuma postagem até agora.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
                                 }
+
                             }
                         }
                         Spacer().frame(height: 20)
                     }
                     .background(Color.FVColor.backgroundDark)
+                    .padding(.top, 6)
                 }
                 .padding(.horizontal)
                 .background(Color.FVColor.backgroundDark)
             }
             .background(Color.FVColor.backgroundDark.ignoresSafeArea())
+            .blurLoading(viewModel.isFetchingActiveUsers)
+        }
+        .onAppear {
+            if location.placeIsOpen {
+                viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
+            }
+            locationManager.requestAuthorization()
+        }
+        .onChange(of: checkinFlow.shoudRequestActiveUsers) { oldValue, newValue in
+            if newValue, location.placeIsOpen {
+                viewModel.fetchActiveUsers(placeID: location.fixedLocation.placeId)
+            }
         }
         .background(Color.FVColor.backgroundDark.ignoresSafeArea())
         .navigationDestination(item: $selectedUserOfPost) { userModel in
             ProfileView(userModel: userModel)
         }
         .fullScreenCover(isPresented: $checkinFlow.showFirst) {
-            CheckInViewFirstStepView(location: location)
+            CheckInViewFirstStepView(placeViewModel: viewModel, location: location)
                 .environmentObject(checkinFlow)
+        }
+        .fullScreenCover(isPresented: $checkinFlow.showError) {
+            Group {
+                if let lat = locationManager.latitude,
+                   let lng = locationManager.longitude {
+                    CheckinResultView(
+                        errorMessage: "Você está longe do local. \(viewModel.formattedDistanceFrom(userLat: lat, userLng: lng, placeLat: location.fixedLocation.location.lat, placeLng: location.fixedLocation.location.lng)) de distância."
+                    )
+                    .environmentObject(checkinFlow)
+                } else {
+                    CheckinResultView(errorMessage: "")
+                }
+            }
         }
         .navigationBarBackButtonHidden()
         .overlay {
@@ -231,21 +433,27 @@ struct PlaceView: View {
                     .zIndex(1)
             }
         }
+        .overlay(
+            VStack {
+                if showTooltip {
+                    withAnimation {
+                        TooltipView(
+                            text: "Ao se afastar do local, será feito o checkout.",
+                            onClose: { withAnimation { showTooltip = false } }
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1)
+                        .padding(.top, 12)
+                        .padding(.horizontal)
+                    }
+                }
+                Spacer()
+            }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        )
     }
-}
 
-class CheckinViewFlow: ObservableObject {
-    @Published var showFirst = false
-    @Published var showSecond = false
-    @Published var showThird = false
-    @Published var showFourth = false
-    @Published var showSuccess = false
-
-    func closeAll() {
-        showFourth = false
-        showSuccess = false
-        showThird = false
-        showSecond = false
-        showFirst = false
+    private func currentUserHasCheckedIn() -> Bool {
+        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? .empty)
     }
 }

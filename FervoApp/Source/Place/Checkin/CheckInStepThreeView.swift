@@ -1,15 +1,17 @@
 //
-//  CheckInStepFourthView.swift
+//  CheckInStepThreeView.swift
 //  FervoApp
 //
 //  Created by Leonardo Jose De Oliveira Portes on 19/08/25.
 //
 
+
 import SwiftUI
 
-struct CheckInStepFourthView: View {
+struct CheckInStepThreeView: View {
     @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
+    @State var nextStep: Bool = false
     @StateObject var placeViewModel: PlaceViewModel
     @State var location: LocationWithPosts
 
@@ -43,9 +45,8 @@ struct CheckInStepFourthView: View {
             .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
         }
         .navigationBarBackButtonHidden()
-        .fullScreenCover(isPresented: $flow.showSuccess) {
-           CheckinSuccessView()
-                .environmentObject(flow)
+        .fullScreenCover(isPresented: $flow.showFourth) {
+            CheckInStepFourthView(placeViewModel: placeViewModel, location: location)
         }
     }
 
@@ -72,7 +73,7 @@ struct CheckInStepFourthView: View {
             .padding(.leading, 20)
 
             VStack {
-                Text("Como está o movimento agora?")
+                Text("Qual gênero musical está tocando?")
                     .font(.title2.bold())
                     .foregroundColor(.white)
                     .padding(.top, 35)
@@ -89,20 +90,21 @@ struct CheckInStepFourthView: View {
                 }
             }
             Spacer()
-            CheckboxListView(selectedOption: $placeViewModel.crowdLevel)
+            MusicStyleSelectorView(selectedStyles: $placeViewModel.musicalTaste)
+
             Spacer()
 
             ProgressStepsView(steps: [
                 Step(title: "Ingresso", reward: 50, isCompleted: true, isCurrent: true),
-                Step(title: "Música", reward: 50, isCompleted: true, isCurrent: true),
-                Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: true),
-                // Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
+                Step(title: "Música", reward: 50, isCompleted: false, isCurrent: true),
+                Step(title: "Movimento", reward: 50, isCompleted: false, isCurrent: false),
+              //  Step(title: "Segurança", reward: 50, isCompleted: false, isCurrent: false)
             ])
 
             Button(action: {
-                flow.showSuccess = true
+                flow.showFourth = true
             }) {
-                Text("Finalizar check-in")
+                Text("Continuar")
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -113,42 +115,68 @@ struct CheckInStepFourthView: View {
             .padding(.bottom, 20)
         }
     }
+
 }
 
-struct MovementOption: Identifiable {
+struct MusicStyle: Identifiable, Hashable {
     let id = UUID()
-    let title: String
-    let emoji: String
+    let name: String
+    let image: String
 }
 
-struct CheckboxListView: View {
-    @Binding var selectedOption: CrowdLevel
+struct MusicStyleSelectorView: View {
+    let styles: [MusicStyle] = [
+        MusicStyle(name: "Eletro", image: ""),
+        MusicStyle(name: "Hip Hop", image: ""),
+        MusicStyle(name: "Funk", image: ""),
+        MusicStyle(name: "Rap", image: ""),
+        MusicStyle(name: "MPB", image: ""),
+        MusicStyle(name: "Trap", image: ""),
+        MusicStyle(name: "Pagode", image: ""),
+        MusicStyle(name: "Pop", image: "")
+    ]
+
+    @Binding var selectedStyles: [String]
+
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
 
     var body: some View {
-        VStack(spacing: 12) {
-            ForEach(CrowdLevel.allCases, id: \.self) { option in
-                Button(action: {
-                    selectedOption = option
-                }) {
-                    HStack {
-                        Image(systemName: selectedOption == option ? "checkmark.square.fill" : "square")
-                            .foregroundColor(selectedOption == option ? .fvBackground : .white)
+        LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(styles) { style in
+                VStack {
+                    ZStack {
+                        // Fundo escuro
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.black)
+                            .frame(width: 75, height: 75)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(selectedStyles.contains(style.name) ? Color.blue : Color.clear, lineWidth: 3)
+                            )
 
-                        Text(option.title)
-                            .foregroundColor(.white)
-                            .fontWeight(.semibold)
-
-                        option.emojiView
-
-                        Spacer()
+                        Text(style.name)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(Color.white)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.5)
                     }
-                    .padding(12)
-                    .background(selectedOption == option ? .blue : Color.blue.opacity(0.5))
-                    .cornerRadius(20)
+                }
+                .onTapGesture {
+                    if selectedStyles.contains(style.name) {
+                        selectedStyles.removeAll(where: { $0 == style.name })
+                    } else {
+                        selectedStyles.append(style.name)
+                    }
                 }
             }
         }
         .padding()
+        .background(Color.fvBackground.edgesIgnoringSafeArea(.all))
     }
 }
-

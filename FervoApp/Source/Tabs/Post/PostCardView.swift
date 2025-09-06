@@ -26,7 +26,7 @@ struct PostCardView: View {
                 onPostTapped?()
             }) {
                 HStack(spacing: 12) {
-                    RemoteImage(url: URL(string: post.userPost.image?.photoURL ?? ""))
+                    RemoteImage(url: URL(string: post.userPost.image?.photoURL ?? .empty))
                         .frame(width: 36, height: 36)
                         .clipShape(Circle())
 
@@ -48,7 +48,7 @@ struct PostCardView: View {
             Button(action: {
                 onPostTapped?()
             }) {
-                RemoteImage(url: URL(string: post.image.photoURL ?? ""))
+                RemoteImage(url: URL(string: post.image.photoURL ?? .empty))
                     .frame(maxWidth: .infinity, minHeight: 320, maxHeight: 320)
                     .clipped()
             }
@@ -59,8 +59,8 @@ struct PostCardView: View {
                         guard !isPerformingLike else { return }
                         isPerformingLike = true
 
-                        if !post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") {
-                            viewModel.likePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? "") { result in
+                        if !post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? .empty) {
+                            viewModel.likePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? .empty) { result in
                                 isPerformingLike = false
                                 switch result {
                                 case .success(_):
@@ -71,7 +71,7 @@ struct PostCardView: View {
                                 }
                             }
                         } else {
-                            viewModel.dislikePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? "") { result in
+                            viewModel.dislikePost(postID: post.id, firebaseUID: userSession.currentUser?.firebaseUid ?? .empty) { result in
                                 isPerformingLike = false
                                 switch result {
                                 case .success(_):
@@ -90,8 +90,8 @@ struct PostCardView: View {
                                     .progressViewStyle(CircularProgressViewStyle(tint: .gray))
                                     .scaleEffect(0.7)
                             } else {
-                                Image(systemName: post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? "heart.fill" : "heart")
-                                    .foregroundColor(post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? "") ? .red : .gray)
+                                Image(systemName: post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? .empty) ? "heart.fill" : "heart")
+                                    .foregroundColor(post.hasMyLike(firebaseUid: userSession.currentUser?.firebaseUid ?? .empty) ? .red : .gray)
                                     .font(.system(size: 20))
                             }
                             Text("\(post.likedBy?.count ?? 0)")
@@ -127,7 +127,7 @@ struct PostCardView: View {
                     HStack(spacing: -6) {
                         if let likedUsers = post.likedUsers {
                             ForEach(likedUsers.prefix(3), id: \.firebaseUid) { user in
-                                RemoteImage(url: URL(string: user.image?.photoURL ?? ""))
+                                RemoteImage(url: URL(string: user.image?.photoURL ?? .empty))
                                     .frame(width: 20, height: 20)
                                     .clipShape(Circle())
                                     .overlay(Circle().stroke(Color.white, lineWidth: 1))

@@ -11,7 +11,7 @@ struct CheckInViewFirstStepView: View {
     @EnvironmentObject var flow: CheckinViewFlow
     @Environment(\.dismiss) private var dismiss
     @State var nextStep: Bool = false
-    @StateObject private var placeViewModel = PlaceViewModel()
+    @StateObject var placeViewModel: PlaceViewModel
     @State var location: LocationWithPosts
 
     var body: some View {
@@ -113,27 +113,3 @@ struct CheckInViewFirstStepView: View {
     }
 
 }
-
-struct CheckItem: View {
-    var title: String
-
-    var body: some View {
-        VStack {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.blue)
-                .font(.title2)
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.white)
-        }
-    }
-}
-
-//
-//struct CheckInViewStepOneView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        CheckInViewStepOneView()
-//    }
-//}
-//
-

@@ -23,6 +23,7 @@ struct PendingConnection: Codable, Equatable, Hashable {
 
 class SolicitationsViewModel: ObservableObject {
     @Published var pendingConnections: [PendingConnection] = []
+    @Published var pendingConnectionsIsLoading: Bool = false
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Solicitar conexão
@@ -141,14 +142,17 @@ class SolicitationsViewModel: ObservableObject {
 
     // MARK: - Listar conexões pendentes
     func fetchPendingConnections() {
+        self.pendingConnectionsIsLoading = true
         Auth.auth().currentUser?.getIDToken { token, error in
             if let error = error {
                 print("[❌] Erro ao obter token: \(error)")
+                self.pendingConnectionsIsLoading = false
                 return
             }
 
             guard let token = token else {
                 print("[❌] Token inválido")
+                self.pendingConnectionsIsLoading = false
                 return
             }
 
@@ -158,6 +162,7 @@ class SolicitationsViewModel: ObservableObject {
 
     private func performFetchPendingConnections(token: String) {
         guard let url = URL(string: "\(baseIPForTest)/connections/pending") else {
+            self.pendingConnectionsIsLoading = false
             print("[❌] URL inválida")
             return
         }
@@ -175,7 +180,7 @@ class SolicitationsViewModel: ObservableObject {
                 if response.statusCode == 200 {
                     return result.data
                 } else {
-                    // Tentar extrair mensagem de erro do corpo
+                    self.pendingConnectionsIsLoading = false
                     if let errorResponse = try? JSONSerialization.jsonObject(with: result.data, options: []) as? [String: Any],
                        let message = errorResponse["message"] as? String {
                         throw NSError(domain: "APIError", code: response.statusCode, userInfo: [NSLocalizedDescriptionKey: message])
@@ -193,11 +198,14 @@ class SolicitationsViewModel: ObservableObject {
             .sink { completion in
                 switch completion {
                 case .failure(let error):
+                    self.pendingConnectionsIsLoading = false
                     print("[❌] Falha ao buscar pendentes: \(error.localizedDescription)")
                 case .finished:
+                    self.pendingConnectionsIsLoading = false
                     print("[✅] Conexões pendentes carregadas")
                 }
             } receiveValue: { [weak self] connections in
+                self?.pendingConnectionsIsLoading = false
                 self?.pendingConnections = connections
             }
             .store(in: &cancellables)

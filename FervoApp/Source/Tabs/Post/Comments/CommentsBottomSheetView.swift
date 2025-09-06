@@ -19,7 +19,7 @@ struct CommentsBottomSheetView: View {
         VStack {
             Rectangle()
                 .frame(width: 30, height: 4)
-                .foregroundColor(Color(.systemGray5))
+                .foregroundColor(Color.white)
                 .clipShape(Capsule())
                 .padding(.bottom, 25)
                 .padding(.top, 12)
@@ -38,7 +38,7 @@ struct CommentsBottomSheetView: View {
                     } else {
                         ForEach(viewModel.comments, id: \.self) { comment in
                             HStack(alignment: .top, spacing: 12) {
-                                AsyncImage(url: URL(string: comment.user.image?.photoURL ?? "")) { image in
+                                AsyncImage(url: URL(string: comment.user.image?.photoURL ?? .empty)) { image in
                                     image.resizable()
                                         .scaledToFill()
                                         .frame(width: 35, height: 35)

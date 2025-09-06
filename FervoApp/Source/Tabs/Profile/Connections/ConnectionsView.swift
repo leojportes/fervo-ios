@@ -1,15 +1,16 @@
 //
-//  SolicitationsView.swift
+//  ConnectionsView.swift
 //  FervoApp
 //
-//  Created by Leonardo Jose De Oliveira Portes on 20/07/25.
+//  Created by Leonardo Jose De Oliveira Portes on 29/08/25.
 //
 
 import SwiftUI
 
-struct SolicitationsView: View {
-    @StateObject private var viewModel = SolicitationsViewModel()
+struct ConnectionsView: View {
     let userSession: UserSession
+    let user: UserModel
+    @StateObject private var viewModel = ConnectionsViewModel()
     @Environment(\.dismiss) private var dismiss
     var onGoToUserPage: ((UserModel) -> Void)?
 
@@ -24,9 +25,10 @@ struct SolicitationsView: View {
              }
              .padding(.top, 12)
              .padding(.bottom, 25)
+
             ScrollView {
                 VStack(alignment: .leading) {
-                    if viewModel.pendingConnections.isEmpty && !viewModel.pendingConnectionsIsLoading {
+                    if viewModel.connectedUsers.isEmpty && !viewModel.isFetchingConnectedUsers {
                         Text("Não há nenhuma\nsolicitação de conexão.")
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -35,15 +37,15 @@ struct SolicitationsView: View {
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             .foregroundStyle(.gray)
-                    } else if !viewModel.pendingConnectionsIsLoading {
-                        ForEach(viewModel.pendingConnections, id: \.id) { connections in
+                    } else {
+                        ForEach(viewModel.connectedUsers, id: \.id) { user in
                             HStack(alignment: .top, spacing: 12) {
                                 Button(action: {
                                     dismiss()
-                                    onGoToUserPage?(connections.from)
+                                    onGoToUserPage?(user)
                                 }) {
                                     HStack {
-                                        AsyncImage(url: URL(string: connections.from.image?.photoURL ?? .empty)) { image in
+                                        AsyncImage(url: URL(string: user.image?.photoURL ?? .empty)) { image in
                                             image.resizable()
                                                 .scaledToFill()
                                                 .frame(width: 35, height: 35)
@@ -55,54 +57,20 @@ struct SolicitationsView: View {
                                         }
 
                                         VStack(alignment: .leading, spacing: 4) {
-                                            Text(connections.from.name)
+                                            Text(user.name)
                                                 .font(.subheadline)
                                                 .foregroundColor(.white)
                                             HStack {
-                                                Text("@\(connections.from.username)")
+                                                Text("@\(user.username)")
                                                     .font(.caption.bold())
                                                     .foregroundColor(.white)
-
-                                                Text(connections.createdAt.timeAgoSinceDate)
-                                                    .font(.caption)
-                                                    .foregroundColor(.gray)
 
                                                 Spacer()
                                             }
                                         }
                                     }
                                 }
-
                                 Spacer()
-
-                                HStack(spacing: 6) {
-                                    Button(action: {
-                                        viewModel.acceptConnection(connectionID: connections.id) { result in
-                                            
-                                        }
-                                    }) {
-                                        Text("Confirmar")
-                                            .font(.caption)
-                                            .foregroundColor(.white)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 8)
-                                            .background(Color.blue.opacity(0.8))
-                                            .cornerRadius(8)
-                                    }
-                                    Button(action: {
-                                        viewModel.cancelConnection(connectionID: connections.id) { result in
-                                            
-                                        }
-                                    }) {
-                                        Image(systemName: "xmark")
-                                            .font(.system(size: 14, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .padding(8)
-                                            .background(Color.clear)
-                                            .clipShape(Circle())
-                                    }
-                                }
-                                .padding(.leading, 12)
                             }
                             .padding(.leading, 16)
                             .padding(.top, 10)
@@ -111,15 +79,12 @@ struct SolicitationsView: View {
                 }
             }
             .padding(.bottom, 50)
-            .background(Color.FVColor.backgroundDark.ignoresSafeArea())
-
 
             Spacer()
-                .background(Color.FVColor.backgroundDark.ignoresSafeArea())
 
         }
         .onAppear {
-            viewModel.fetchPendingConnections()
+            viewModel.fetchConnectedUsers(for: user.firebaseUid)
         }
         .background(Color.FVColor.backgroundDark.ignoresSafeArea())
     }

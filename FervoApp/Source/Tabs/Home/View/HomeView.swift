@@ -35,7 +35,7 @@ struct HomeView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
                 headerView
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     VStack {
                         searchTappedView
                         Divider()
@@ -77,13 +77,15 @@ struct HomeView: View {
             .navigationBarBackButtonHidden()
             .onAppear {
                 DispatchQueue.main.async {
-                    if viewModel.locationsWithPosts.isEmpty {
-                        viewModel.fetch()
-                    }
+                    viewModel.fetch()
                 }
                 customizeNavigationBar()
             }
         }
+    }
+
+    private func currentUserHasCheckedIn() -> Bool {
+        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? .empty)
     }
 }
 
@@ -91,6 +93,9 @@ struct HomeView: View {
 private extension HomeView {
     var headerView: some View {
         HStack {
+            if currentUserHasCheckedIn() {
+                
+            }
             Spacer()
 
             Button(action: handleLogout) {

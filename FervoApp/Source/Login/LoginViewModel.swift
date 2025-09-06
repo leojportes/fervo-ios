@@ -76,7 +76,7 @@ final class LoginViewModel: ObservableObject {
                         self.isAuthenticated = true
                     case .failure(let fetchError):
                         print("❌ [Login] Falha ao buscar dados do usuário: \(fetchError)")
-                        self.errorMessage = fetchError.localizedDescription
+                        self.errorMessage = "Aconteceu algum erro. Tente novamente!"
                         self.isAuthenticated = false
                     }
                 }
@@ -124,24 +124,31 @@ final class LoginViewModel: ObservableObject {
         }.resume()
     }
 
-    // MARK: - Erro Firebase
     private func mapFirebaseError(_ error: NSError) {
-        if let message = error.userInfo[NSLocalizedDescriptionKey] as? String {
-            self.errorMessage = self.descriptionError(error: message)
+        if let authError = AuthErrorCode(rawValue: error.code) {
+            self.errorMessage = descriptionError(code: authError)
         } else {
             self.errorMessage = "Erro inesperado: \(error.localizedDescription)"
         }
         self.isAuthenticated = false
     }
 
-    private func descriptionError(error: String) -> String {
-        switch error {
-        case "INVALID_LOGIN_CREDENTIALS":
-            return "Email e/ou senha incorretos."
+    private func descriptionError(code: AuthErrorCode) -> String {
+        switch code {
+        case .invalidCredential, .wrongPassword, .invalidEmail:
+            return "E-mail e/ou senha incorretos."
+        case .userNotFound:
+            return "Usuário não encontrado."
+        case .emailAlreadyInUse:
+            return "E-mail já está em uso."
+        case .weakPassword:
+            return "A senha deve ter pelo menos 6 caracteres."
+        case .networkError:
+            return "Falha de conexão. Verifique sua internet."
         default:
-            return "Ocorreu um erro inesperado. Tente novamente mais tarde."
+            return "Ocorreu um erro inesperado. Tente novamente."
         }
     }
 }
 
-let baseIPForTest = "https://47c9b879dee3.ngrok-free.app"
+let baseIPForTest = "https://db08bd2e4235.ngrok-free.app"
