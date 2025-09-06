@@ -12,6 +12,8 @@ struct SolicitationsView: View {
     let userSession: UserSession
     @Environment(\.dismiss) private var dismiss
     var onGoToUserPage: ((UserModel) -> Void)?
+    @State var showTooltip = false
+    @State var tooltipMessage: String = ""
 
     var body: some View {
         VStack {
@@ -78,7 +80,13 @@ struct SolicitationsView: View {
                                 HStack(spacing: 6) {
                                     Button(action: {
                                         viewModel.acceptConnection(connectionID: connections.id) { result in
-                                            
+                                            switch result {
+                                            case .success(_):
+                                                viewModel.fetchPendingConnections()
+                                            case .failure(_):
+                                                showTooltip = true
+                                                tooltipMessage = "Aconteceu algum erro ao se conectar."
+                                            }
                                         }
                                     }) {
                                         Text("Confirmar")
@@ -91,7 +99,16 @@ struct SolicitationsView: View {
                                     }
                                     Button(action: {
                                         viewModel.cancelConnection(connectionID: connections.id) { result in
-                                            
+                                            switch result {
+                                            case .success(_):
+                                                showTooltip = true
+                                                tooltipMessage = "Solicitação de conexão cancelada."
+                                                viewModel.fetchPendingConnections()
+                                            case .failure(_):
+                                                showTooltip = true
+                                                tooltipMessage = "Aconteceu algum erro ao cancelar a conexão."
+                                                dismiss()
+                                            }
                                         }
                                     }) {
                                         Image(systemName: "xmark")
@@ -122,5 +139,23 @@ struct SolicitationsView: View {
             viewModel.fetchPendingConnections()
         }
         .background(Color.FVColor.backgroundDark.ignoresSafeArea())
+        .overlay(
+            VStack {
+                if showTooltip {
+                    withAnimation {
+                        TooltipView(
+                            text: tooltipMessage,
+                            onClose: { withAnimation { showTooltip = false } }
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(1)
+                        .padding(.top, 12)
+                        .padding(.horizontal)
+                    }
+                }
+                Spacer()
+            }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        )
     }
 }

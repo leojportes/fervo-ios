@@ -103,14 +103,23 @@ struct ProfileView: View {
                                     .foregroundColor(.gray)
                             }
                         }
-
-                        Spacer()
                     }
                     .padding(.top)
                     .padding(.horizontal)
 
                     // Connections and posts
                     HStack(spacing: 40) {
+                      
+                        VStack(alignment: .center, spacing: 4) {
+                            Image(systemName: "trophy.fill")
+                                .font(.title2)
+                                .foregroundColor(viewModel.levelColor)
+                            Text(viewModel.userLevel)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .multilineTextAlignment(.center)
+                        }
+                      
                         Button(action: {
                             if viewModel.connectedUsers.count > 0 && (viewModel.hasConnection || userSession.currentUser?.firebaseUid == userToShow?.firebaseUid) {
                                 isPresentConnections = true
@@ -202,6 +211,9 @@ struct ProfileView: View {
                     selectedUserFromSolicitations = user
                 }
             )
+            .onDisappear { 
+                onAppearMethods()
+            }
         }
         .sheet(isPresented: $isPresentConnections) {
             if let user = userToShow {

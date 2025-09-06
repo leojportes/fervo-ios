@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import Combine
 import FirebaseAuth
 
@@ -25,6 +26,84 @@ final class ProfileViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var isFetching: Bool = false
     private var isFetchingConnectedUsers = false
+    
+    
+    // MARK: - Computed Properties
+    var totalRoles: Int {
+        return userActivityHistory.count
+    }
+    
+    var userLevel: String {
+        if totalRoles < 40 {
+            return "Rolezeiro(a)\nIniciante"
+        } else if totalRoles < 100 {
+            return "Rolezeiro(a)\nExplorador"
+        } else {
+            return "Rolezeiro(a)\nVeterano"
+        }
+    }
+    
+    var levelColor: Color {
+        if totalRoles < 40 {
+            return Color(red: 212/255, green: 175/255, blue: 55/255)
+        } else if totalRoles < 100 {
+            return Color(red: 212/255, green: 175/255, blue: 55/255)
+        } else {
+            return .purple
+        }
+    }
+    
+    var isMaxLevel: Bool {
+        return totalRoles >= 100
+    }
+    
+    var nextLevelThreshold: Int {
+        if totalRoles < 40 {
+            return 40
+        } else if totalRoles < 100 {
+            return 100
+        } else {
+            return 100 // Nível máximo
+        }
+    }
+    
+    var progressToNextLevel: Double {
+        if totalRoles < 40 {
+            return Double(totalRoles) / 40.0
+        } else if totalRoles < 100 {
+            return Double(totalRoles - 40) / 60.0 // De 40 até 100 (60 rolês de diferença)
+        } else {
+            return 1.0 // Nível máximo atingido
+        }
+    }
+    
+    var mostFrequentedPlaceThisMonth: (location: FixedLocation, count: Int)? {
+        let calendar = Calendar.current
+        let oneMonthAgo = calendar.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+        
+        // Filtrar atividades do último mês
+        let recentActivities = userActivityHistory.filter { activity in
+            guard let checkInDate = activity.checkInDate else { return false }
+            return checkInDate >= oneMonthAgo
+        }
+        
+        // Contar frequência por local
+        var locationCounts: [String: (location: FixedLocation, count: Int)] = [:]
+        
+        for activity in recentActivities {
+            let location = activity.fixedlocation.fixedLocation
+            let locationId = location.id
+            
+            if let existing = locationCounts[locationId] {
+                locationCounts[locationId] = (location: location, count: existing.count + 1)
+            } else {
+                locationCounts[locationId] = (location: location, count: 1)
+            }
+        }
+        
+        // Retornar o local mais frequentado
+        return locationCounts.values.max { $0.count < $1.count }
+    }
 
     var numberOfonnectionsTitle: String {
         connectedUsers.count == 1 ? "Conexão" : "Conexões"

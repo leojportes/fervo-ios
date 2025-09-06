@@ -2,7 +2,7 @@
 //  LoginView.swift
 //  FervoApp
 //
-//  Created by Leonardo Jose De Oliveira Portes on 20/05/25.
+//  Created by gabriel subutzki portes on 02/09/25.
 //
 
 
@@ -11,44 +11,58 @@ import SwiftUI
 struct LoginView: View {
     @EnvironmentObject var viewModel: LoginViewModel
     @EnvironmentObject var userSession: UserSession
+    @State private var isPasswordVisible = false 
 
     var body: some View {
         NavigationView {
             ZStack {
                 Color.black.edgesIgnoringSafeArea(.all) // fundo escuro
-
                 VStack(spacing: 24) {
                     Spacer()
+                    Text("FERVO")
+                        .font(.system(size: 40, weight: .bold, design: .default))
+                        .foregroundStyle(Color(red: 0.1622, green: 0.2980, blue: 0.8799))
+                        .kerning(20)
+                        .padding(.leading, 20)
+                        
+                    Spacer()
 
-                    // Título
-                    Text("Bem-vindo de volta 👋")
-                        .font(.largeTitle.bold())
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-
-                    Text("Faça login para continuar")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-
-                    // Campos de texto
                     VStack(spacing: 16) {
-                        TextField("Email", text: $viewModel.email)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .disableAutocorrection(true)
-                            .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(12)
-                            .foregroundColor(.gray)
+                         TextField("e-mail cadastrado", text: $viewModel.email)
+                             .keyboardType(.emailAddress)
+                             .autocapitalization(.none)
+                             .disableAutocorrection(true)
+                             .padding()
+                             .background(Color(.secondarySystemBackground))
+                             .cornerRadius(12)
+                             .foregroundColor(.gray)
 
-                        SecureField("Senha", text: $viewModel.password)
-                            .padding()
-                            .background(Color(.secondarySystemBackground))
-                            .cornerRadius(12)
-                            .foregroundColor(.gray)
-                    }
-                    .padding(.horizontal)
+                         ZStack(alignment: .trailing) {
+                             Group {
+                                 if isPasswordVisible {
+                                     TextField("senha cadastrada", text: $viewModel.password)
+                                         .frame(height: 30)
+                                 } else {
+                                     SecureField("senha cadastrada", text: $viewModel.password)
+                                         .frame(height: 30)
+                                 }
+                             }
+                             .padding()
+                             .background(Color(.secondarySystemBackground))
+                             .cornerRadius(12)
+                             .foregroundColor(.gray)
 
+                             Button(action: {
+                                 isPasswordVisible.toggle()
+                             }) {
+                                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                     .foregroundColor(.gray)
+                             }
+                             .padding(.trailing, 16)
+                         }
+                     }
+                     .padding(.horizontal)
+                    
                     // Mensagem de erro
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
@@ -75,25 +89,26 @@ struct LoginView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.purple.opacity(0.8))
+                                .background(Color(.blue).opacity(0.8))
                                 .cornerRadius(12)
                         }
                     }
                     .padding(.horizontal)
                     .disabled(viewModel.isLoading)
-
-                    // Link de cadastro
+                    
                     HStack {
-                        Text("Ainda não tem conta?")
-                            .foregroundColor(.gray)
-                        Button(action: {
-                            // Ação para navegar para cadastro
-                        }) {
-                            Text("Cadastrar")
-                                .foregroundColor(.purple)
-                                .fontWeight(.semibold)
+                        Text("Não tem uma conta?")
+                            .foregroundStyle(.gray)
+                        
+                        Button {
+                            //code
+                        } label: {
+                            Text("Registre-se!")
+                                .foregroundStyle(.white)
                         }
+
                     }
+                    .padding(25)
 
                     Spacer()
                 }

@@ -248,8 +248,8 @@ class SolicitationsViewModel: ObservableObject {
                 completion(.failure(NSError(domain: "Resposta inválida", code: -2)))
                 return
             }
-
-            if httpResponse.statusCode == 204 {
+            
+            if (200...299).contains(httpResponse.statusCode) {
                 DispatchQueue.main.async {
                     completion(.success(()))
                 }
