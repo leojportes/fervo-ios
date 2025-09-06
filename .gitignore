@@ -10,6 +10,7 @@ build/
 DerivedData/
 xcuserdata/
 *.xcworkspace
+*.xcworkspace/xcuserdata/
 *.xcodeproj/project.xcworkspace/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcuserdatad/
