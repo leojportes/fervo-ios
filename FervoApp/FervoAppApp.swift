@@ -61,7 +61,7 @@ struct RootView: View {
                         manager.requestWhenInUseAuthorization()
                     }
             } else {
-                LoginView()
+                LoginViewV3()
                     .environmentObject(userSession)
                     .environmentObject(loginViewModel)
                     .onAppear {
