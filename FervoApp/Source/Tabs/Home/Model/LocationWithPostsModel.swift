@@ -39,44 +39,34 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
         let calendar = Calendar.current
         let now = Date()
 
-        // Nome do dia de hoje (ex: "domingo")
         let today = formatter.string(from: now).lowercased()
-
-        // Nome do dia anterior (ex: "sábado")
         let yesterday = formatter.string(from: calendar.date(byAdding: .day, value: -1, to: now)!).lowercased()
 
-        // Busca o horário de hoje
         if let todayLine = weekDays.first(where: { $0.lowercased().hasPrefix(today) }) {
             if let range = todayLine.range(of: ":") {
                 let timePart = todayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
 
-                if placeIsOpen {
-                    return timePart
-                }
-            }
-        }
+                if timePart.lowercased() != "fechado" {
+                    let parts = timePart.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
+                    if parts.count == 2 {
+                        let openStr = parts[0]
+                        let closeStr = parts[1]
 
-        // Se o horário de hoje é "Fechado", verifica se ontem passou da meia-noite
-        if let yesterdayLine = weekDays.first(where: { $0.lowercased().hasPrefix(yesterday) }) {
-            if let range = yesterdayLine.range(of: ":") {
-                let timePart = yesterdayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
+                        let openComponents = openStr.split(separator: ":").compactMap { Int($0) }
+                        let closeComponents = closeStr.split(separator: ":").compactMap { Int($0) }
 
-                let parts = timePart.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
-                if parts.count == 2 {
-                    let openTime = parts[0]
-                    let closeTime = parts[1]
+                        if openComponents.count == 2, closeComponents.count == 2 {
+                            let openDate = calendar.date(bySettingHour: openComponents[0], minute: openComponents[1], second: 0, of: now)!
+                            var closeDate = calendar.date(bySettingHour: closeComponents[0], minute: closeComponents[1], second: 0, of: now)!
 
-                    // Se fechamento é antes da abertura, então atravessa a meia-noite
-                    if closeTime < openTime {
-                        let closeComponents = closeTime.components(separatedBy: ":").compactMap { Int($0) }
-                        if closeComponents.count == 2 {
-                            let closeHour = closeComponents[0]
-                            let closeMinute = closeComponents[1]
+                            if closeDate < openDate {
+                                closeDate = calendar.date(byAdding: .day, value: 1, to: closeDate)!
+                            }
 
-                            let closingToday = calendar.date(bySettingHour: closeHour, minute: closeMinute, second: 0, of: now)!
-
-                            if now < closingToday {
-                                return timePart // Está aberto do dia anterior
+                            if now >= openDate && now <= closeDate {
+                                return "Aberto agora até \(closeStr)"
+                            } else if now < openDate {
+                                return "Abre hoje às \(openStr)"
                             }
                         }
                     }
@@ -84,7 +74,33 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
             }
         }
 
-        // 🔍 Se estiver fechado, procurar o próximo dia aberto
+        if let yesterdayLine = weekDays.first(where: { $0.lowercased().hasPrefix(yesterday) }) {
+            if let range = yesterdayLine.range(of: ":") {
+                let timePart = yesterdayLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
+
+                let parts = timePart.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
+                if parts.count == 2 {
+                    let openStr = parts[0]
+                    let closeStr = parts[1]
+
+                    let openComponents = openStr.split(separator: ":").compactMap { Int($0) }
+                    let closeComponents = closeStr.split(separator: ":").compactMap { Int($0) }
+
+                    if openComponents.count == 2, closeComponents.count == 2 {
+                        let openDate = calendar.date(bySettingHour: openComponents[0], minute: openComponents[1], second: 0, of: now)!
+                        var closeDate = calendar.date(bySettingHour: closeComponents[0], minute: closeComponents[1], second: 0, of: now)!
+
+                        if closeDate < openDate {
+                            closeDate = calendar.date(byAdding: .day, value: 1, to: closeDate)!
+                            if now <= closeDate {
+                                return "Aberto agora até \(closeStr)"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         for i in 1...7 {
             guard let futureDate = calendar.date(byAdding: .day, value: i, to: now) else { continue }
             let futureDay = formatter.string(from: futureDate).lowercased()
@@ -93,9 +109,9 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
                 if let range = futureLine.range(of: ":") {
                     let timePart = futureLine[range.upperBound...].trimmingCharacters(in: .whitespaces)
                     if timePart.lowercased() != "fechado" {
-                        // Exemplo de retorno: "Abre quinta-feira às 21:00"
+                        let openHour = timePart.components(separatedBy: "-").first!.trimmingCharacters(in: .whitespaces)
                         let dayCapitalized = futureDay.prefix(1).uppercased() + futureDay.dropFirst()
-                        return "Abre \(dayCapitalized) às \(timePart.components(separatedBy: "-").first!.trimmingCharacters(in: .whitespaces))"
+                        return "Abre \(dayCapitalized) às \(openHour)"
                     }
                 }
             }
@@ -103,6 +119,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
 
         return ""
     }
+
 
     var placeIsOpen: Bool {
         guard let weekDays = fixedLocation.weekdayText else { return false }

@@ -115,7 +115,7 @@ struct MapView: UIViewRepresentable {
                 let dy = radius * sin(angle)
                 let coord = baseCoord.offsetBy(latMeters: dy, lonMeters: dx)
                 let annotation = UserAnnotation(coordinate: coord,
-                                                imageURL: URL(string: user.user.image?.photoURL ?? ""),
+                                                imageURL: URL(string: user.user.image?.photoURL ?? .empty),
                                                 userModel: user.user)
                 mapView.addAnnotation(annotation)
             }
@@ -155,7 +155,7 @@ struct MapView: UIViewRepresentable {
 
             let annotation = UserAnnotation(
                 coordinate: coord,
-                imageURL: URL(string: user.user.image?.photoURL ?? ""),
+                imageURL: URL(string: user.user.image?.photoURL ?? .empty),
                 userModel: user.user
             )
             mapView.addAnnotation(annotation)

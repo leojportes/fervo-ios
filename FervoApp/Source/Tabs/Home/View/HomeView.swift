@@ -85,7 +85,7 @@ struct HomeView: View {
     }
 
     private func currentUserHasCheckedIn() -> Bool {
-        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? "")
+        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? .empty)
     }
 }
 

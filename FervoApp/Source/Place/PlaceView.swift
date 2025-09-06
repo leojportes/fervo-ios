@@ -23,7 +23,7 @@ struct PlaceView: View {
         self.userSession = userSession
         _viewModel = StateObject(
             wrappedValue: PlaceViewModel(
-                firebaseUid: userSession.currentUser?.firebaseUid ?? ""
+                firebaseUid: userSession.currentUser?.firebaseUid ?? .empty
             )
         )
     }
@@ -157,27 +157,65 @@ struct PlaceView: View {
 
 
                             }) {
-                                VStack {
-                                    Text("Check-in")
-                                        .foregroundColor(location.placeIsOpen ? .white : .gray)
-                                        .font(.subheadline)
-
-                                    HStack(spacing: 4) {
-                                        Text(location.placeIsOpen ? "Ganhe 250 pontos" : location.fixedLocation.timeUntilNextOpen() ?? "")
-                                            .foregroundColor(.white)
-                                            .font(.caption2)
+                                HStack(spacing: 12) {
+                                    // Ícone à esquerda
+                                    ZStack {
+                                        Circle()
+                                            .fill(location.placeIsOpen ? Color.blue : Color.gray.opacity(0.3))
+                                            .frame(width: 40, height: 40)
+                                        
                                         if location.placeIsOpen {
-                                            Image(systemName: "bitcoinsign.circle.fill")
-                                                .foregroundColor(.yellow)
-                                                .font(.caption)
-                                                .shadow(radius: 4)
+                                            Image(systemName: "location.fill")
+                                                .foregroundColor(.white)
+                                                .font(.system(size: 16, weight: .medium))
+                                        } else {
+                                            Image(systemName: "clock.fill")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 16, weight: .medium))
                                         }
                                     }
+                                    
+                                    // Conteúdo principal
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Check-in")
+                                            .foregroundColor(location.placeIsOpen ? .white : .gray)
+                                            .font(.system(.subheadline, weight: .semibold))
+                                        
+                                        HStack(spacing: 6) {
+                                            Text(location.placeIsOpen ? "Ganhe 250 pontos" : location.fixedLocation.timeUntilNextOpen() ?? .empty)
+                                                .foregroundColor(location.placeIsOpen ? .white.opacity(0.8) : .gray)
+                                                .font(.system(.caption, weight: .medium))
+                                            
+                                            if location.placeIsOpen {
+                                                Image(systemName: "bitcoinsign.circle.fill")
+                                                    .foregroundColor(.yellow)
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .shadow(color: .yellow.opacity(0.3), radius: 2)
+                                            }
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // Seta indicativa
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(location.placeIsOpen ? .white.opacity(0.6) : .gray.opacity(0.6))
+                                        .font(.system(size: 14, weight: .medium))
                                 }
-                                .frame(maxWidth: 170)
-                                .padding()
-                                .background(location.placeIsOpen ? Color.blue : Color.blue.opacity(0.3))
-                                .cornerRadius(15)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(location.placeIsOpen ? 
+                                              LinearGradient(colors: [Color.blue, Color.blue.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing) : 
+                                              LinearGradient(colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .stroke(location.placeIsOpen ? Color.blue.opacity(0.3) : Color.gray.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                                .frame(maxWidth: 220)
                             }
                             .disabled(!location.placeIsOpen)
                         } else if location.placeIsOpen && currentUserHasCheckedIn() {
@@ -206,7 +244,7 @@ struct PlaceView: View {
 
 
                     VStack(alignment: .leading, spacing: 8) {
-                        HStack {
+                        HStack(alignment: .bottom) {
                             Text(location.placeIsOpen ? "Quem está no rolê agora" : "Localização")
                                 .font(.title3)
                                 .bold()
@@ -244,7 +282,7 @@ struct PlaceView: View {
                                             if viewModel.activeUsers.count != 0 {
                                                 ForEach(viewModel.activeUsers.prefix(3), id: \.self) { user in
 
-                                                    RemoteImage(url: URL(string: user.user.image?.photoURL ?? ""))
+                                                    RemoteImage(url: URL(string: user.user.image?.photoURL ?? .empty))
                                                         .frame(width: 24, height: 24)
                                                         .clipShape(Circle())
                                                         .overlay(Circle().stroke(Color.white, lineWidth: 1))
@@ -284,7 +322,7 @@ struct PlaceView: View {
                                         ) {
                                             ZStack(alignment: .bottomLeading) {
                                                 // Imagem principal (base)
-                                                AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
+                                                AsyncImage(url: URL(string: post.image.photoURL ?? .empty)) { image in
                                                     image
                                                         .resizable()
                                                         .scaledToFill()
@@ -416,6 +454,6 @@ struct PlaceView: View {
     }
 
     private func currentUserHasCheckedIn() -> Bool {
-        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? "")
+        viewModel.currentUserHasActiveCheckin(firebaseUid: userSession.currentUser?.firebaseUid ?? .empty)
     }
 }

@@ -45,7 +45,7 @@ struct ConnectionsView: View {
                                     onGoToUserPage?(user)
                                 }) {
                                     HStack {
-                                        AsyncImage(url: URL(string: user.image?.photoURL ?? "")) { image in
+                                        AsyncImage(url: URL(string: user.image?.photoURL ?? .empty)) { image in
                                             image.resizable()
                                                 .scaledToFill()
                                                 .frame(width: 35, height: 35)

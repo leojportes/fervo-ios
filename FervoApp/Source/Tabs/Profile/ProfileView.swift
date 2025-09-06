@@ -40,7 +40,7 @@ struct ProfileView: View {
                             .padding(.vertical)
                     }
 
-                    Text("@\(userToShow?.username ?? "")")
+                    Text("@\(userToShow?.username ?? .empty)")
                         .font(.title2)
                         .foregroundColor(.white)
                         .background(Color.FVColor.backgroundDark)
@@ -59,7 +59,7 @@ struct ProfileView: View {
                 .background(Color.FVColor.backgroundDark)
             } else {
                 HStack {
-                    Text("@\(userSession.currentUser?.username ?? "")")
+                    Text("@\(userSession.currentUser?.username ?? .empty)")
                         .font(.title2)
                         .foregroundColor(.white)
                     Spacer()
@@ -77,7 +77,7 @@ struct ProfileView: View {
                 .padding(.top, 20)
                 .background(Color.FVColor.backgroundDark)
             }
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(alignment: .top) {
                         if let url = userToShow?.image?.photoURL {
@@ -168,7 +168,7 @@ struct ProfileView: View {
                         }
                         .padding(.horizontal)
                     }
-                    
+
                     Divider()
                         .background(Color.gray.opacity(0.3))
                         .padding(.horizontal)
@@ -188,7 +188,9 @@ struct ProfileView: View {
                         }
                     }
                 }
-            }
+            }.refreshable(action: {
+                onAppearMethods()
+            })
         }
         .sheet(item: $selectedUserFromSolicitations) { user in
             ProfileView(userModel: user)
@@ -268,6 +270,7 @@ struct ProfileView: View {
     private func onAppearMethods() {
         if let userIdToCheck = userModel?.firebaseUid {
             viewModel.fetchPendingConnections(userIdToCheck: userIdToCheck)
+            viewModel.fetchUserActivityHistory(uid: userIdToCheck)
             viewModel.checkConnection(with: userIdToCheck) { result in
                 if result {
                     print("tem conexão? \(result)")
@@ -277,7 +280,9 @@ struct ProfileView: View {
         if let user = userToShow {
             viewModel.fetchUserPosts(firebaseUID: user.firebaseUid)
             viewModel.fetchConnectedUsers(for: user.firebaseUid)
+            viewModel.fetchUserActivityHistory(uid: user.firebaseUid)
         }
+
         customizeNavigationBar()
     }
 
@@ -301,7 +306,7 @@ struct ProfileView: View {
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(Array(viewModel.posts.enumerated()), id: \.element.id) { index, post in
                     GeometryReader { geometry in
-                        AsyncImage(url: URL(string: post.image.photoURL ?? "")) { image in
+                        AsyncImage(url: URL(string: post.image.photoURL ?? .empty)) { image in
                             image
                                 .resizable()
                                 .scaledToFill()
@@ -324,7 +329,7 @@ struct ProfileView: View {
             }
             .padding(.horizontal)
             .fullScreenCover(isPresented: $isShowingPostCarousel) {
-                PostCarouselView(posts: viewModel.posts, selectedIndex: $selectedPostIndex) {
+                PostCarouselView(isLoading: $viewModel.isLoading, posts: viewModel.posts, selectedIndex: $selectedPostIndex) {
                     isShowingPostCarousel = false
                 }
                 .environmentObject(userSession)
@@ -333,7 +338,29 @@ struct ProfileView: View {
     }
 
     func makeAtivittyView() -> some View {
-        emptyView(text: "Nenhuma atividade no momento")
+        VStack(alignment: .leading) {
+            MusicalTasteBadgesView(user: userToShow)
+                .padding(.vertical, 20)
+            
+            ActivityStatsCardView(viewModel: viewModel)
+                .padding(.top, 10)
+            
+            Text("Últimos rolês")
+                .font(.headline)
+                .foregroundColor(.white)
+                .lineLimit(1)
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+            
+            ActivityCarouselView(viewModel: viewModel)
+
+            ActivityChartView(viewModel: viewModel)
+                .padding(.bottom, 20)
+                .padding(.top, 10)
+            
+            Spacer()
+        }
+        
     }
 
     func emptyView(text: String) -> some View {
@@ -347,81 +374,3 @@ struct ProfileView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
-
-struct PostCarouselView: View {
-    let posts: [Post]
-    @EnvironmentObject var userSession: UserSession
-    @Binding var selectedIndex: Int
-    var onDismiss: () -> Void
-
-    var body: some View {
-        VStack {
-            HStack {
-                Button(action: {
-                    onDismiss()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundColor(.white)
-                        .padding([.horizontal, .top], 10)
-                }
-                .frame(width: 30)
-
-                Spacer()
-                VStack(alignment: .center) {
-                    Text("Posts")
-                        .font(.subheadline.bold())
-                        .foregroundColor(.white)
-                    Text("@\(posts.first?.userPost.username ?? "")")
-                        .font(.caption2)
-                        .foregroundColor(.white)
-                }
-                Rectangle()
-                    .foregroundColor(Color.fvBackground)
-                    .frame(width: 30, height: 10)
-
-                Spacer()
-            }
-            .background(Color.fvBackground)
-            ScrollViewReader { proxy in
-                ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
-                        ForEach(Array(posts.enumerated()), id: \.element.id) { index, post in
-                            VStack {
-                                PostCardView(
-                                    post: post,
-                                    onCommentTapped: {
-                                        //selectedPostForComments = post
-                                    },
-                                    onLikeTapped: {
-                                        // viewModel.fetch()
-                                    },
-                                    onPostTapped: {
-                                        //handlePostTap(post)
-                                    }
-                                )
-                                .environmentObject(userSession)
-                                .padding(.horizontal)
-                                .padding(.top, 12)
-                            }
-                            .padding(.top, 12)
-                            .padding(.bottom, index == posts.count - 1 ? 150 : 0)
-                            .clipped()
-                            .id(index)
-                            .background(Color.black)
-                        }
-                    }
-
-                }
-                .background(Color.fvBackground)
-                .ignoresSafeArea()
-                .onAppear {
-                    proxy.scrollTo(selectedIndex, anchor: .bottom)
-                }
-            }
-        }
-        .background(Color.fvBackground)
-    }
-}
-
-

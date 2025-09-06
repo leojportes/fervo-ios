@@ -136,19 +136,19 @@ final class LoginViewModel: ObservableObject {
     private func descriptionError(code: AuthErrorCode) -> String {
         switch code {
         case .invalidCredential, .wrongPassword, .invalidEmail:
-            return "e-mail e/ou senha incorretos."
+            return "E-mail e/ou senha incorretos."
         case .userNotFound:
-            return "usuário não encontrado."
+            return "Usuário não encontrado."
         case .emailAlreadyInUse:
-            return "e-mail já está em uso."
+            return "E-mail já está em uso."
         case .weakPassword:
-            return "a senha deve ter pelo menos 6 caracteres."
+            return "A senha deve ter pelo menos 6 caracteres."
         case .networkError:
-            return "falha de conexão. Verifique sua internet."
+            return "Falha de conexão. Verifique sua internet."
         default:
-            return "ocorreu um erro inesperado. Tente novamente mais tarde."
+            return "Ocorreu um erro inesperado. Tente novamente."
         }
     }
 }
 
-let baseIPForTest = "https://400f47c2c7a9.ngrok-free.app"
+let baseIPForTest = "https://db08bd2e4235.ngrok-free.app"

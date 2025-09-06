@@ -43,7 +43,7 @@ struct SolicitationsView: View {
                                     onGoToUserPage?(connections.from)
                                 }) {
                                     HStack {
-                                        AsyncImage(url: URL(string: connections.from.image?.photoURL ?? "")) { image in
+                                        AsyncImage(url: URL(string: connections.from.image?.photoURL ?? .empty)) { image in
                                             image.resizable()
                                                 .scaledToFill()
                                                 .frame(width: 35, height: 35)

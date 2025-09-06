@@ -26,12 +26,15 @@ struct TransportDarkButton: View {
     let service: Service
     let destination: Destination
     let style: Style
+    @State var presentSafariView: Bool = false
 
     @Environment(\.colorScheme) private var scheme
     @State private var isPressed = false
 
     var body: some View {
-        Button(action: openDestination) {
+        Button(action: {
+            presentSafariView = true }
+        ) {
             HStack(spacing: 8) {
                 Image(service == .uber ? "uber" : "map")
                     .renderingMode(style == .dark ? .template : .original)
@@ -53,6 +56,7 @@ struct TransportDarkButton: View {
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .animation(.easeOut(duration: 0.15), value: isPressed)
         }
+        .sheet(isPresented: $presentSafariView, content: openDestination)
         .buttonStyle(.plain)
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
@@ -62,7 +66,7 @@ struct TransportDarkButton: View {
         .accessibilityLabel("Abrir destino no \(service == .uber ? "Uber" : "Google Maps")")
     }
 
-    private func openDestination() {
+    private func openDestination() -> some View {
         func encode(_ s: String) -> String {
             s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? s
         }
@@ -91,15 +95,17 @@ struct TransportDarkButton: View {
             webURL = URL(string: "https://www.google.com/maps/search/?api=1&query=\(q)")
 
         case (.google, .coordinates(let lat, let lng, let name)):
-            let nameEncoded = encode(name ?? "")
+            let nameEncoded = encode(name ?? .empty)
             appURL = URL(string: "comgooglemaps://?q=\(lat),\(lng)(\(nameEncoded))&center=\(lat),\(lng)&zoom=16")
             webURL = URL(string: "https://www.google.com/maps/search/?api=1&query=\(lat),\(lng)")
         }
 
         if let appURL, UIApplication.shared.canOpenURL(appURL) {
-            UIApplication.shared.open(appURL)
-        } else if let webURL {
-            UIApplication.shared.open(webURL)
-        }
+             return AnyView(SafariView(url: appURL))
+         } else if let webURL {
+             return AnyView(SafariView(url: webURL))
+         } else {
+             return AnyView(EmptyView())
+         }
     }
 }

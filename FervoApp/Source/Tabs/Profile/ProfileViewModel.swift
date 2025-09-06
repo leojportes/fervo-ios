@@ -18,6 +18,8 @@ final class ProfileViewModel: ObservableObject {
     @Published var hasPendingConnections: Bool = false
     @Published var pendingConnectionId: String? = nil
     @Published var isLoadingCheckConnection: Bool = false
+    @Published var userActivityHistory: [UserActivityResponse] = []
+    @Published var isFetchingHistory: Bool = false
 
 
     private var cancellables = Set<AnyCancellable>()
@@ -99,7 +101,7 @@ final class ProfileViewModel: ObservableObject {
 
     func checkConnection(with otherUserUID: String, completion: ((Bool) -> Void)? = nil) {
         self.isLoadingCheckConnection = true
-        guard let currentUID = Auth.auth().currentUser?.uid else {
+        guard Auth.auth().currentUser?.uid != nil else {
             self.hasConnection = false
             completion?(false)
             return
@@ -339,5 +341,51 @@ final class ProfileViewModel: ObservableObject {
                 }
                 .store(in: &self.cancellables)
         }
+    }
+
+    func fetchUserActivityHistory(uid: String) {
+        guard let url = URL(string: "\(baseIPForTest)/checkin/history?firebase_uid=\(uid)") else {
+            print("URL inválida")
+            self.isFetchingHistory = false
+            return
+        }
+
+        self.isFetchingHistory = true
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+
+            if let error = error {
+                print("Erro ao buscar histórico:", error)
+                self.isFetchingHistory = false
+                return
+            }
+
+            guard let data = data else {
+                print("Nenhum dado retornado")
+                self.isFetchingHistory = false
+                return
+            }
+
+            do {
+
+                let formatter = DateFormatter()
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSZ"
+
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .formatted(formatter)
+
+
+                let activities = try decoder.decode([UserActivityResponse].self, from: data)
+
+                DispatchQueue.main.async {
+                    self.isFetchingHistory = false
+                    self.userActivityHistory = activities
+                }
+            } catch {
+                print("Erro ao decodificar JSON:", error)
+            }
+        }.resume()
     }
 }

@@ -78,7 +78,7 @@ struct FixedLocation: Codable, Equatable, Hashable, Identifiable {
             if hoursPart.lowercased() == "fechado" { continue }
 
             // Pegar horário de abertura (primeira parte do range)
-            let timeRange = hoursPart.components(separatedBy: "–")
+            let timeRange = hoursPart.components(separatedBy: "-")
             guard let openingTimeString = timeRange.first?.trimmingCharacters(in: .whitespaces),
                   let openingTime = dateFormatter.date(from: openingTimeString) else { continue }
 
@@ -97,7 +97,6 @@ struct FixedLocation: Codable, Equatable, Hashable, Identifiable {
 
             let interval = Int(openingDate.timeIntervalSince(now))
             if interval > 0 {
-                // Formatar resultado
                 let days = interval / (60*60*24)
                 let hours = (interval % (60*60*24)) / 3600
                 let minutes = (interval % 3600) / 60
@@ -105,7 +104,7 @@ struct FixedLocation: Codable, Equatable, Hashable, Identifiable {
                 if days > 0 {
                     return "Abre em \(days) dia" + (days > 1 ? "s" : "")
                 } else if hours > 0 {
-                    return "Abre em \(hours)h\(minutes + 1)min"
+                    return "Abre em \(hours)h \(minutes + 1)min"
                 } else {
                     return "Abre em \(minutes + 1)min"
                 }
