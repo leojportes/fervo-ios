@@ -13,3 +13,6 @@ xcuserdata/
 *.xcodeproj/project.xcworkspace/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcuserdatad/
+
+# Xcode workspace state
+*.xcworkspace/contents.xcworkspacedata
