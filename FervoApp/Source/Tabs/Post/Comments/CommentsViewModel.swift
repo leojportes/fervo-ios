@@ -58,6 +58,7 @@ class CommentsViewModel: ObservableObject {
                     print("[❌] Erro ao decodificar: \(error)")
                 case .finished:
                     print("[✅] Decodificação e atualização concluídas")
+                    break
                 }
             } receiveValue: { [weak self] comments in
                 print("[🗺️] Locations recebidas: \(comments.comments?.count)")

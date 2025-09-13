@@ -467,4 +467,62 @@ final class ProfileViewModel: ObservableObject {
             }
         }.resume()
     }
+    
+    func requestConnection(toUserID: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Auth.auth().currentUser?.getIDToken { token, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let token = token else {
+                completion(.failure(NSError(domain: "Token inválido", code: -1)))
+                return
+            }
+
+            self.performRequestConnection(toUserID: toUserID, token: token, completion: completion)
+        }
+    }
+
+    private func performRequestConnection(toUserID: String, token: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "\(baseIPForTest)/connections/request") else {
+            completion(.failure(NSError(domain: "URL inválida", code: -1)))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Criar o body da requisição
+        let requestBody = ["to": toUserID]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        } catch {
+            completion(.failure(NSError(domain: "Erro ao serializar JSON", code: -3)))
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(NSError(domain: "Resposta inválida", code: -2)))
+                return
+            }
+
+            if (200...299).contains(httpResponse.statusCode) {
+                DispatchQueue.main.async {
+                    completion(.success(()))
+                }
+            } else {
+                completion(.failure(NSError(domain: "Erro ao solicitar conexão. Status: \(httpResponse.statusCode)", code: httpResponse.statusCode)))
+            }
+        }.resume()
+    }
 }

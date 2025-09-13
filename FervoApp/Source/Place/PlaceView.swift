@@ -213,7 +213,7 @@ struct PlaceView: View {
                                                 .stroke(location.placeIsOpen ? Color.blue.opacity(0.3) : Color.gray.opacity(0.2), lineWidth: 1)
                                         )
                                 )
-                                .frame(maxWidth: 220)
+                                .frame(maxWidth: 230)
                             }
                             .disabled(!location.placeIsOpen)
                         } else if location.placeIsOpen && currentUserHasCheckedIn() {

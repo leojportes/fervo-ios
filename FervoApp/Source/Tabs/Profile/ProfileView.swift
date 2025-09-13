@@ -17,6 +17,7 @@ struct ProfileView: View {
     @State private var selectedPostIndex: Int = 0
     @State private var isShowingPostCarousel = false
     @State private var isPresentConnections = false
+    @State var connectionButtonTitle: String = ""
 
     enum ProfileTab {
         case feed
@@ -102,6 +103,34 @@ struct ProfileView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                             }
+                        }
+                        Spacer()
+                        
+                        if !viewModel.hasConnection && userSession.currentUser?.firebaseUid != userToShow?.firebaseUid {
+                            Button(action: {
+                                self.connectionButtonTitle = "Solicitado"
+                                viewModel.requestConnection(toUserID: userToShow?.firebaseUid ?? "") { result in
+                                    switch result {
+                                    case .success():
+                                        print("Solicitação de conexão enviada com sucesso!")
+                                        // Atualizar UI ou mostrar mensagem de sucesso
+                                        
+                                    case .failure(let error):
+                                        print("Erro ao solicitar conexão: \(error.localizedDescription)")
+                                        // Mostrar erro para o usuário
+                                    }
+                                }
+                            }) {
+                                Text(connectionButtonTitle)
+                                    .font(.caption)
+                                    .foregroundColor(hasSolicitations ? .gray : .white)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(hasSolicitations ? Color.blue.opacity(0.4) : Color.blue.opacity(0.8))
+                                    .cornerRadius(8)
+                            }
+                            .disabled(hasSolicitations)
+                            .padding() 
                         }
                     }
                     .padding(.top)
@@ -232,6 +261,10 @@ struct ProfileView: View {
         }
         .navigationBarBackButtonHidden()
     }
+    
+    private var hasSolicitations: Bool {
+        connectionButtonTitle == "Solicitado"
+    }
 
     private func conditionalContent() -> some View {
         if viewModel.hasPendingConnections {
@@ -294,7 +327,7 @@ struct ProfileView: View {
             viewModel.fetchConnectedUsers(for: user.firebaseUid)
             viewModel.fetchUserActivityHistory(uid: user.firebaseUid)
         }
-
+        self.connectionButtonTitle = viewModel.hasPendingConnections ? "Solicitado" : "Conectar"
         customizeNavigationBar()
     }
 

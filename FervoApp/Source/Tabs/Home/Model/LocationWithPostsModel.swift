@@ -37,7 +37,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
         formatter.dateFormat = "EEEE"
 
         let calendar = Calendar.current
-        let now = Date()
+        let now = Date.nowFixed()
 
         let today = formatter.string(from: now).lowercased()
         let yesterday = formatter.string(from: calendar.date(byAdding: .day, value: -1, to: now)!).lowercased()
@@ -87,14 +87,17 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
                     let closeComponents = closeStr.split(separator: ":").compactMap { Int($0) }
 
                     if openComponents.count == 2, closeComponents.count == 2 {
-                        let openDate = calendar.date(bySettingHour: openComponents[0], minute: openComponents[1], second: 0, of: now)!
-                        var closeDate = calendar.date(bySettingHour: closeComponents[0], minute: closeComponents[1], second: 0, of: now)!
+                        let yesterdayDate = calendar.date(byAdding: .day, value: -1, to: now)! // base ontem
+
+                        let openDate = calendar.date(bySettingHour: openComponents[0], minute: openComponents[1], second: 0, of: yesterdayDate)!
+                        var closeDate = calendar.date(bySettingHour: closeComponents[0], minute: closeComponents[1], second: 0, of: yesterdayDate)!
 
                         if closeDate < openDate {
                             closeDate = calendar.date(byAdding: .day, value: 1, to: closeDate)!
-                            if now <= closeDate {
-                                return "Aberto agora até \(closeStr)"
-                            }
+                        }
+
+                        if now >= openDate && now <= closeDate {
+                            return "Aberto agora até \(closeStr)"
                         }
                     }
                 }
@@ -127,7 +130,7 @@ struct LocationWithPosts: Identifiable, Decodable, Equatable, Hashable {
         formatter.locale = Locale(identifier: "pt_BR")
         formatter.dateFormat = "EEEE"
 
-        let now = Date()
+        let now = Date.nowFixed()
         let calendar = Calendar.current
         let today = formatter.string(from: now).lowercased()
         let yesterdayDate = calendar.date(byAdding: .day, value: -1, to: now)!

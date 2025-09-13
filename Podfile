@@ -1,6 +1,4 @@
-# Uncomment the next line to define a global platform for your project
 platform :ios, '15.0'
-
 
 target 'FervoApp' do
   use_frameworks!
@@ -15,6 +13,7 @@ target 'FervoApp' do
   end
 
   target 'FervoAppUITests' do
-    # Pods for testing
+    inherit! :search_paths
+    # Pods for UI testing (se algum dia precisar)
   end
 end

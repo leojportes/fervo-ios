@@ -75,7 +75,6 @@ class HomeViewModel: ObservableObject {
                     print("[✅] Decodificação e atualização concluídas")
                 }
             } receiveValue: { [weak self] locations in
-                print("[🗺️] Locations recebidas: \(locations.count)")
                 self?.locationsWithPosts = locations.filter { $0.posts?.isEmpty == false }
             }
             .store(in: &cancellables)
