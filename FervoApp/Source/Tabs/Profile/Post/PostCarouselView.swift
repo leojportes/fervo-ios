@@ -11,9 +11,11 @@ struct PostCarouselView: View {
     @Binding var isLoading: Bool
     let posts: [Post]
     @EnvironmentObject var userSession: UserSession
+    @EnvironmentObject var viewModel: ProfileViewModel
+    let currentUserModel: UserModel?
     @Binding var selectedIndex: Int
     var onDismiss: () -> Void
-
+    @State private var selectedPostForComments: Post?
 
     var body: some View {
         VStack {
@@ -45,40 +47,57 @@ struct PostCarouselView: View {
                 Spacer()
             }
             .background(Color.fvBackground)
+            
+            Divider()
+                .padding([.horizontal, .bottom], 0)
+                .background(Color.gray)
+            
             ScrollViewReader { proxy in
                 ScrollView(.vertical, showsIndicators: false) {
-                    LazyVStack(spacing: 0) {
+                    LazyVStack(spacing: 20) {
                         ForEach(Array(posts.enumerated()), id: \.element.id) { index, post in
                             VStack {
-                                PostCardView(
+                                ProfilePostCardView(
                                     post: post,
-                                    onCommentTapped: {
-                                        //selectedPostForComments = post
-                                    },
-                                    onLikeTapped: {
-                                        // viewModel.fetch()
-                                    },
-                                    onPostTapped: {
-                                        //handlePostTap(post)
-                                    }
+                                    onCommentTapped: { selectedPostForComments = post },
+                                    onLikeTapped: { viewModel.fetchUserPosts(firebaseUID: currentUserModel?.firebaseUid ?? "") },
+                                    onPostTapped: { }
                                 )
-                                .environmentObject(userSession)
-                                .padding(.horizontal)
-                                .padding(.top, 12)
+                                .padding(.top, index == 0 ? 20 : 0)
+                                .padding(.bottom, index == posts.count - 1 ? 100 : 0)
+                                .id(index)
+                                
+                                if index != posts.count - 1 {
+                                    Divider()
+                                        .background(Color.gray) 
+                                        .padding(.top, 20)
+                                }
                             }
-                            .padding(.top, 12)
-                            .padding(.bottom, index == posts.count - 1 ? 150 : 0)
-                            .clipped()
-                            .id(index)
-                            .background(Color.black)
                         }
                     }
-
+                }
+                .onAppear {
+                    DispatchQueue.main.async {
+                        proxy.scrollTo(selectedIndex, anchor: .center)
+                    }
+                }
+                .onChange(of: selectedIndex) { newIndex in
+                    DispatchQueue.main.async {
+                        proxy.scrollTo(newIndex, anchor: .center)
+                    }
                 }
                 .background(Color.fvBackground)
                 .ignoresSafeArea()
-                .onAppear {
-                    proxy.scrollTo(selectedIndex, anchor: .bottom)
+                .sheet(item: $selectedPostForComments) { post in
+                    CommentsBottomSheetView(
+                        userSession: userSession,
+                        postId: post.id,
+                        onDisappear: { hasNewComment in
+                            if hasNewComment {
+                               // viewModel.fetch()
+                            }
+                        }
+                    )
                 }
             }
         }

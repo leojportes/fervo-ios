@@ -5,6 +5,7 @@ target 'FervoApp' do
   
   pod 'Firebase/Core'
   pod 'Firebase/Auth'
+  pod 'Firebase/Firestore'
   pod 'lottie-ios', '~> 4.2'
 
   target 'FervoAppTests' do

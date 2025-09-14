@@ -155,21 +155,21 @@ struct PlaceView: View {
                                     checkinFlow.showCheckinFailedTooFar = true
                                 }
                             }) {
-                                HStack(spacing: 12) {
+                                HStack(spacing: 10) {
                                     // Ícone à esquerda
                                     ZStack {
                                         Circle()
                                             .fill(location.placeIsOpen ? Color.blue : Color.gray.opacity(0.3))
-                                            .frame(width: 40, height: 40)
+                                            .frame(width: 35, height: 35)
                                         
                                         if location.placeIsOpen {
                                             Image(systemName: "location.fill")
                                                 .foregroundColor(.white)
-                                                .font(.system(size: 16, weight: .medium))
+                                                .font(.system(size: 11, weight: .medium))
                                         } else {
                                             Image(systemName: "clock.fill")
                                                 .foregroundColor(.gray)
-                                                .font(.system(size: 16, weight: .medium))
+                                                .font(.system(size: 11, weight: .medium))
                                         }
                                     }
                                     
@@ -180,14 +180,14 @@ struct PlaceView: View {
                                             .font(.system(.subheadline, weight: .semibold))
                                         
                                         HStack(spacing: 6) {
-                                            Text(location.placeIsOpen ? "Ganhe 250 pontos" : location.fixedLocation.timeUntilNextOpen() ?? .empty)
+                                            Text(location.placeIsOpen ? "+250 pontos" : location.fixedLocation.timeUntilNextOpen() ?? .empty)
                                                 .foregroundColor(location.placeIsOpen ? .white.opacity(0.8) : .gray)
-                                                .font(.system(.caption, weight: .medium))
+                                                .font(.caption2)
                                             
                                             if location.placeIsOpen {
                                                 Image(systemName: "bitcoinsign.circle.fill")
                                                     .foregroundColor(.yellow)
-                                                    .font(.system(size: 14, weight: .medium))
+                                                    .font(.system(size: 12, weight: .medium))
                                                     .shadow(color: .yellow.opacity(0.3), radius: 2)
                                             }
                                         }
@@ -213,7 +213,7 @@ struct PlaceView: View {
                                                 .stroke(location.placeIsOpen ? Color.blue.opacity(0.3) : Color.gray.opacity(0.2), lineWidth: 1)
                                         )
                                 )
-                                .frame(maxWidth: 230)
+                                .frame(maxWidth: 200)
                             }
                             .disabled(!location.placeIsOpen)
                         } else if location.placeIsOpen && currentUserHasCheckedIn() {

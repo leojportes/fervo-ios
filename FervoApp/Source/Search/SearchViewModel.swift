@@ -91,7 +91,7 @@ final class SearchViewModel: ObservableObject {
         } else {
             let normalizedQuery = normalize(query)
             peopleResults = allPeople.filter { user in
-                normalize(user.user.name).contains(normalizedQuery)
+                normalize(user.user.name).contains(normalizedQuery) || normalize(user.user.username).contains(normalizedQuery)
             }
         }
     }

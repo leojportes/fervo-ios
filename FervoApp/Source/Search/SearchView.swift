@@ -85,6 +85,7 @@ struct PeoplePlacesView: View {
                         SearchPeopleSectionView(
                             placeholder: "Buscar pessoas...",
                             text: $peopleQuery,
+                            viewModel: viewModel,
                             results: viewModel.peopleResults,
                             onSearch: { viewModel.fetchUserAndSearch(query: peopleQuery) },
                             onGoToUserPage: { user in selectedUser = user }
@@ -92,7 +93,8 @@ struct PeoplePlacesView: View {
                     } else {
                         SearchPlaceSectionView(
                             placeholder: "Buscar lugares...",
-                            text: $placesQuery, viewModel: viewModel,
+                            text: $placesQuery,
+                            viewModel: viewModel,
                             onSearch: { viewModel.fetchPlacesAndSearch(query: placesQuery) },
                             onTapLocation: { location in
                                 selectedLocation = location

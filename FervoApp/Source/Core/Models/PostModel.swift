@@ -11,7 +11,8 @@ struct Post: Identifiable, Codable, Equatable, Hashable {
     let id: String
     let firebaseId: String
     let userPost: UserModel
-    let fixedLocationId: String
+    let fixedLocationId: String?
+    let fixedLocation: FixedLocation? // Feed Profile view use
     let image: ImageModel
     let createdAt: Date
     let comments: [PostComment]?
@@ -28,6 +29,7 @@ struct Post: Identifiable, Codable, Equatable, Hashable {
         case comments
         case likedBy = "liked_by"
         case likedUsers = "liked_users"
+        case fixedLocation = "fixed_location"
     }
 
     func hasMyLike(firebaseUid: String) -> Bool {

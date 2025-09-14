@@ -43,8 +43,8 @@ struct RootView: View {
     @EnvironmentObject var loginViewModel: LoginViewModel
     let manager = CLLocationManager()
 
-    @StateObject private var homeViewModel = HomeViewModel()  // ADICIONE AQUI
-
+    @StateObject private var homeViewModel = HomeViewModel()
+    
     var body: some View {
         Group {
             if loginViewModel.isLoading {

@@ -19,19 +19,55 @@ final class ProfileViewModel: ObservableObject {
     @Published var hasPendingConnections: Bool = false
     @Published var pendingConnectionId: String? = nil
     @Published var isLoadingCheckConnection: Bool = false
+    @Published var isLoadingCheckRequestConnection: Bool = true
     @Published var userActivityHistory: [UserActivityResponse] = []
     @Published var isFetchingHistory: Bool = false
+    @Published var pendingConnections: [PendingConnection] = []
 
 
     private var cancellables = Set<AnyCancellable>()
     private var isFetching: Bool = false
     private var isFetchingConnectedUsers = false
     
-    
+    enum ConnectionButtonStatus {
+        case connect         /// nenhuma conexão
+        case pendingSent     /// logado enviou
+        case pendingReceived /// outro usuário enviou
+        case connected       /// já são amigos/conectados
+    }
+
+    func getConnectionButtonStatus(
+        loggedUserId: String,
+        profileUserId: String,
+        connections: [PendingConnection]
+    ) -> ConnectionButtonStatus {
+        // tenta encontrar uma conexão entre logado e perfil
+        if let conn = connections.first(where: { 
+            ($0.from.firebaseUid == loggedUserId && $0.to.firebaseUid == profileUserId) ||
+            ($0.from.firebaseUid == profileUserId && $0.to.firebaseUid == loggedUserId)
+        }) {
+            switch conn.status {
+            case "pending":
+                if conn.from.firebaseUid == loggedUserId {
+                    return .pendingSent
+                } else {
+                    return .pendingReceived
+                }
+            case "accepted":
+                return .connected
+            default:
+                return .connect
+            }
+        }
+        
+        return .connect
+    }
+
     // MARK: - Computed Properties
     var totalRoles: Int {
         return userActivityHistory.count
     }
+    
     
     var userLevel: String {
         if totalRoles < 40 {
@@ -254,14 +290,17 @@ final class ProfileViewModel: ObservableObject {
     }
 
     func fetchPendingConnections(userIdToCheck: String) {
+        self.isLoadingCheckRequestConnection = true
         Auth.auth().currentUser?.getIDToken { token, error in
             if let error = error {
                 print("[❌] Erro ao obter token: \(error)")
+                self.isLoadingCheckRequestConnection = false
                 return
             }
 
             guard let token = token else {
                 print("[❌] Token inválido")
+                self.isLoadingCheckRequestConnection = false
                 return
             }
 
@@ -272,6 +311,7 @@ final class ProfileViewModel: ObservableObject {
     private func performFetchPendingConnections(token: String, userIdToCheck: String) {
         guard let url = URL(string: "\(baseIPForTest)/connections/pending") else {
             print("[❌] URL inválida")
+            self.isLoadingCheckRequestConnection = false
             return
         }
 
@@ -306,14 +346,18 @@ final class ProfileViewModel: ObservableObject {
             .sink { completion in
                 switch completion {
                 case .failure(let error):
+                    self.isLoadingCheckRequestConnection = false
                     print("[❌] Falha ao buscar pendentes: \(error.localizedDescription)")
                 case .finished:
+                    self.isLoadingCheckRequestConnection = false
                     print("[✅] Conexões pendentes carregadas")
                 }
             } receiveValue: { [weak self] connections in
+                self?.pendingConnections = connections
                 self?.hasPendingConnections = !connections.filter({ $0.from.firebaseUid == userIdToCheck && $0.status == "pending" }).isEmpty
                 self?.pendingConnectionId = connections
                     .first(where: { $0.from.firebaseUid == userIdToCheck && $0.status == "pending" })?.id
+                self?.isLoadingCheckRequestConnection = false
             }
             .store(in: &cancellables)
     }

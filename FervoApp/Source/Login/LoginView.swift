@@ -16,7 +16,11 @@ struct LoginView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.edgesIgnoringSafeArea(.all) // fundo escuro
+                Image("dj_background") // substitua pelo nome da imagem no seu Assets
+                       .resizable()
+                       .scaledToFill()
+                       .ignoresSafeArea()
+                
                 VStack(spacing: 24) {
                     Spacer()
                     Text("FERVO")
@@ -33,7 +37,7 @@ struct LoginView: View {
                              .autocapitalization(.none)
                              .disableAutocorrection(true)
                              .padding()
-                             .background(Color(.secondarySystemBackground))
+                             .background(Color(.white.opacity(0.8)))
                              .cornerRadius(12)
                              .foregroundColor(.gray)
 
@@ -48,7 +52,7 @@ struct LoginView: View {
                                  }
                              }
                              .padding()
-                             .background(Color(.secondarySystemBackground))
+                             .background(Color(.white.opacity(0.8)))
                              .cornerRadius(12)
                              .foregroundColor(.gray)
 
@@ -112,6 +116,7 @@ struct LoginView: View {
 
                     Spacer()
                 }
+                .frame(width: UIScreen.main.bounds.width)
             }
             .navigationBarHidden(true)
         }

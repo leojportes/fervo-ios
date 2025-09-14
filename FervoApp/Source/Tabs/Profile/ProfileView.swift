@@ -106,31 +106,50 @@ struct ProfileView: View {
                         }
                         Spacer()
                         
-                        if !viewModel.hasConnection && userSession.currentUser?.firebaseUid != userToShow?.firebaseUid {
-                            Button(action: {
-                                self.connectionButtonTitle = "Solicitado"
-                                viewModel.requestConnection(toUserID: userToShow?.firebaseUid ?? "") { result in
-                                    switch result {
-                                    case .success():
-                                        print("Solicitação de conexão enviada com sucesso!")
-                                        // Atualizar UI ou mostrar mensagem de sucesso
-                                        
-                                    case .failure(let error):
-                                        print("Erro ao solicitar conexão: \(error.localizedDescription)")
-                                        // Mostrar erro para o usuário
+                        if !viewModel.isLoadingCheckConnection, !viewModel.hasConnection, !viewModel.isLoadingCheckRequestConnection {
+                            if let profileId = userToShow?.firebaseUid,
+                               userSession.currentUser?.firebaseUid != profileId {
+
+                                let status = viewModel
+                                    .getConnectionButtonStatus(
+                                        loggedUserId: userSession.currentUser?.firebaseUid ?? "",
+                                        profileUserId: profileId,
+                                        connections: viewModel.pendingConnections
+                                    )
+
+                                switch status {
+                                case .connect:
+                                    Button("Conectar") {
+                                        viewModel.requestConnection(toUserID: profileId) { result in
+                                            if case .success = result {
+                                                onAppearMethods()
+                                            }
+                                        }
                                     }
-                                }
-                            }) {
-                                Text(connectionButtonTitle)
                                     .font(.caption)
-                                    .foregroundColor(hasSolicitations ? .gray : .white)
+                                    .foregroundColor(.white)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 8)
-                                    .background(hasSolicitations ? Color.blue.opacity(0.4) : Color.blue.opacity(0.8))
+                                    .background(Color.blue.opacity(0.8))
                                     .cornerRadius(8)
+
+                                case .pendingSent:
+                                    Button("Solicitado") {}
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(Color.blue.opacity(0.4))
+                                        .cornerRadius(8)
+                                        .disabled(true)
+
+                                case .pendingReceived:
+                                    EmptyView()
+
+                                case .connected:
+                                    EmptyView()
+                                }
                             }
-                            .disabled(hasSolicitations)
-                            .padding() 
                         }
                     }
                     .padding(.top)
@@ -374,10 +393,11 @@ struct ProfileView: View {
             }
             .padding(.horizontal)
             .fullScreenCover(isPresented: $isShowingPostCarousel) {
-                PostCarouselView(isLoading: $viewModel.isLoading, posts: viewModel.posts, selectedIndex: $selectedPostIndex) {
+                PostCarouselView(isLoading: $viewModel.isLoading, posts: viewModel.posts, currentUserModel: userToShow, selectedIndex: $selectedPostIndex) {
                     isShowingPostCarousel = false
                 }
                 .environmentObject(userSession)
+                .environmentObject(viewModel)
             }
         }
     }

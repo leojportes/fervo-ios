@@ -206,7 +206,7 @@ class SolicitationsViewModel: ObservableObject {
                 }
             } receiveValue: { [weak self] connections in
                 self?.pendingConnectionsIsLoading = false
-                self?.pendingConnections = connections
+                self?.pendingConnections = connections.filter { $0.from.firebaseUid != Auth.auth().currentUser?.uid }
             }
             .store(in: &cancellables)
     }

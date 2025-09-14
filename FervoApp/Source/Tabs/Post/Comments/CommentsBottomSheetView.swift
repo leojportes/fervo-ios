@@ -73,7 +73,6 @@ struct CommentsBottomSheetView: View {
                     }
                 }
             }
-            .padding(.bottom, 50)
 
             Spacer()
 
@@ -86,7 +85,7 @@ struct CommentsBottomSheetView: View {
                 )
                 .padding(12)
                 .background(Color.FVColor.headerCardbackgroundColor)
-                .cornerRadius(8)
+                .cornerRadius(12)
                 .foregroundColor(.white)
                 .onChange(of: newComment) { newValue in
                     if newValue.count > 50 {
@@ -116,6 +115,7 @@ struct CommentsBottomSheetView: View {
                 }
             }
             .padding()
+            .frame(height: 70)
         }
         .onAppear {
             viewModel.fetchComments(for: postId)

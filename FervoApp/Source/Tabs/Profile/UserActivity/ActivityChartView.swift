@@ -35,56 +35,43 @@ struct ActivityChartView: View {
                 .padding(.horizontal, 10)
                 .padding(.top, 10)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .bottom, spacing: barSpacing) {
-                    ForEach(chartData, id: \.date) { data in
-                        VStack(spacing: 4) {
-                            // Bar with location images if there are activities
-                            ZStack {
-                                Rectangle()
-                                    .fill(barColor(for: data.count))
-                                    .frame(width: barWidth, height: barHeight(for: data.count))
-                                    .cornerRadius(2)
-                                
-                                if data.count > 0 {
-                                    Text("\(data.activities.count)x")
-                                        .font(.caption2.bold())
-                                        .foregroundColor(.white)
-                                        .padding(2)
-//                                    HStack(spacing: data.activities.count > 1 ? -6 : 2) {
-//                                        ForEach(Array(data.activities.prefix(2).enumerated()), id: \.element.id) { index, activity in
-//                                            
-//                                           
-//                                            ZStack(alignment: .topTrailing) {
-//                                                RemoteImage(url: URL(string: activity.fixedlocation.fixedLocation.photoURL))
-//                                                    .frame(width: 20, height: 20)
-//                                                    .cornerRadius(10)
-//
-//                                                if index == 1 && data.activities.count > 2 {
-//                                                    Text("+\(data.activities.count - 2)")
-//                                                        .font(.caption2.bold())
-//                                                        .foregroundColor(.white)
-//                                                        .padding(2)
-//                                                        .background(Color.black.opacity(0.7))
-//                                                        .clipShape(Circle())
-//                                                        .offset(x: 6, y: -8)
-//                                                }
-//                                            }
-//                                        }
-//                                    }
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .bottom, spacing: barSpacing) {
+                        ForEach(Array(chartData.enumerated()), id: \.1.date) { index, data in
+                            VStack(spacing: 4) {
+                                // Bar com imagem de localização
+                                ZStack {
+                                    Rectangle()
+                                        .fill(barColor(for: data.count))
+                                        .frame(width: barWidth, height: barHeight(for: data.count))
+                                        .cornerRadius(2)
+
+                                    if data.count > 0 {
+                                        Text("\(data.activities.count)x")
+                                            .font(.caption2.bold())
+                                            .foregroundColor(.white)
+                                            .padding(2)
+                                    }
                                 }
+
+                                Text(dayLabel(for: data.date))
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
                             }
-                            
-                            // Day label
-                            Text(dayLabel(for: data.date))
-                                .font(.caption2)
-                                .foregroundColor(.gray)
+                            .id(index) // Identificador único para scroll
                         }
                     }
+                    .frame(height: 80)
+                    .padding([.horizontal, .bottom], 10)
                 }
-                .frame(height: 80)
-                .padding([.horizontal, .bottom], 10)
-            } 
+                .onAppear {
+                    if let lastIndex = chartData.indices.last {
+                        proxy.scrollTo(lastIndex, anchor: .trailing)
+                    }
+                }
+            }
+
         }
 
     }
